@@ -72,8 +72,12 @@ task GetVCFsImpl {
                 fi
             done
             LOCAL_FILE=$(basename -s .vcf.gz ${VCF_FILE})
-            bcftools view --threads ${N_THREADS} --regions "~{region}" --output-type z ${LOCAL_FILE}.vcf.gz | bcftools sort --output-type z --output ${LOCAL_FILE}.region.vcf.gz
+            tabix ${LOCAL_FILE}.vcf.gz
+            bcftools view --threads ${N_THREADS} --regions "~{region}" --output-type z ${LOCAL_FILE}.vcf.gz > tmp.vcf.gz
             rm -f ${LOCAL_FILE}.vcf.gz
+            tabix tmp.vcf.gz
+            bcftools sort --output-type z tmp.vcf.gz > ${LOCAL_FILE}.region.vcf.gz
+            rm -f tmp.vcf.gz
             tabix ${LOCAL_FILE}.region.vcf.gz
             echo ${LOCAL_FILE}.region.vcf.gz >> list.txt
         done < ~{vcf_addresses}
