@@ -9,6 +9,7 @@ workflow GetVCFs {
         String output_dir
         File reference_fa
         File reference_fai
+        Int n_cpus
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -35,6 +36,7 @@ task GetVCFsImpl {
         String output_dir
         File reference_fa
         File reference_fai
+        Int n_cpus
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -71,6 +73,7 @@ task GetVCFsImpl {
             done
             LOCAL_FILE=$(basename -s .vcf.gz ${VCF_FILE})
             bcftools view --threads ${N_THREADS} --regions "~{region}" --output-type z ${LOCAL_FILE}.vcf.gz | bcftools sort --output-type z --output ${LOCAL_FILE}.region.vcf.gz
+            rm -f ${LOCAL_FILE}.vcf.gz
             echo ${LOCAL_FILE}.region.vcf.gz >> list.txt
         done < ~{vcf_addresses}
         
@@ -96,5 +99,9 @@ task GetVCFsImpl {
     }
     runtime {
         docker: "fcunial/sv-merging"
+        cpu: n_cpus
+        memory: "64GB"  # Arbitrary
+        disks: "local-disk 100 HDD"  # Arbitrary
+        preemptible: 0
     }
 }
