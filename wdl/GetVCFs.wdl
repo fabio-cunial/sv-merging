@@ -83,11 +83,12 @@ task GetVCFsImpl {
         done < ~{vcf_addresses}
         
         # Merging SVs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list.txt --output-type v --output merged.1.vcf
-        ${TIME_COMMAND} truvari collapse --input merged.1.vcf --output merged.2.vcf --collapsed-output collapsed.2.vcf --reference ~{reference_fa} --keep first --passonly
-        ${TIME_COMMAND} truvari collapse --input merged.1.vcf --output merged.3.vcf --collapsed-output collapsed.3.vcf --reference ~{reference_fa} --keep maxqual --passonly
-        ${TIME_COMMAND} truvari collapse --input merged.1.vcf --output merged.4.vcf --collapsed-output collapsed.4.vcf --reference ~{reference_fa} --keep common --passonly
-        ${TIME_COMMAND} truvari collapse --input merged.1.vcf --output merged.5.vcf --collapsed-output collapsed.5.vcf --reference ~{reference_fa} --keep common --chain --passonly
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list.txt --output-type z --output merged.1.vcf.gz
+        tabix merged.1.vcf.gz
+        ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.2.vcf --collapsed-output collapsed.2.vcf --reference ~{reference_fa} --keep first --passonly
+        ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.3.vcf --collapsed-output collapsed.3.vcf --reference ~{reference_fa} --keep maxqual --passonly
+        ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.4.vcf --collapsed-output collapsed.4.vcf --reference ~{reference_fa} --keep common --passonly
+        ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.5.vcf --collapsed-output collapsed.5.vcf --reference ~{reference_fa} --keep common --chain --passonly
         
         # Outputting
         while : ; do
