@@ -23,6 +23,7 @@ workflow GetVCFs {
             output_dir = output_dir,
             reference_fa = reference_fa,
             reference_fai = reference_fai
+            n_cpus = n_cpus
     }
     output {
     }
