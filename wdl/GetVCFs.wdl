@@ -106,7 +106,7 @@ task GetVCFsImpl {
     runtime {
         docker: "fcunial/sv-merging"
         cpu: n_cpus
-        memory: "64GB"  # Arbitrary
+        memory: "128GB"  # Arbitrary
         disks: "local-disk 100 HDD"  # Arbitrary
         preemptible: 0
     }
