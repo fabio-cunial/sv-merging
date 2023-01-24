@@ -9,7 +9,6 @@ workflow GetVCFs {
         String output_dir
         File reference_fa
         File reference_fai
-        Int n_cpus
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -23,7 +22,6 @@ workflow GetVCFs {
             output_dir = output_dir,
             reference_fa = reference_fa,
             reference_fai = reference_fai
-            n_cpus = n_cpus
     }
     output {
     }
@@ -37,7 +35,6 @@ task GetVCFsImpl {
         String output_dir
         File reference_fa
         File reference_fai
-        Int n_cpus
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -138,7 +135,7 @@ task GetVCFsImpl {
     }
     runtime {
         docker: "fcunial/sv-merging"
-        cpu: n_cpus
+        cpu: 1  # bcftools and truvari are sequential
         memory: "64GB"  # Arbitrary
         disks: "local-disk 250 HDD"  # Arbitrary
         preemptible: 0
