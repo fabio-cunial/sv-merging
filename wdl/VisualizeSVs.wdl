@@ -75,7 +75,7 @@ task VisualizeSVsImpl {
             fi
         done
         
-        # Printing SVs that start in specified intervals (if any).
+        # Printing SVs that start inside the given intervals (if any).
         if [ $(wc -l < ~{show_svs_in_intervals}) -gt 0 ]; then
             for i in $(seq 1 5); do
                 bcftools sort --output-type z --output merged.${i}.vcf.gz merged.${i}.vcf

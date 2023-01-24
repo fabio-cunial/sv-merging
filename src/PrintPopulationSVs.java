@@ -109,14 +109,14 @@ public class PrintPopulationSVs {
         y++;
         
         System.err.println("Printing: RepeatMasker annotations");
-        drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT-1);
-        y+=HEIGHT_PIXELS_REPEAT;
+        drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT+1);
+        y+=HEIGHT_PIXELS_REPEAT+2;
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
         System.err.println("Printing: TRF annotations");
-        drawTrfAnnotations(TRF_FILE,TRF_FILE_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT-1);
-        y+=HEIGHT_PIXELS_REPEAT;
+        drawTrfAnnotations(TRF_FILE,TRF_FILE_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT+1);
+        y+=HEIGHT_PIXELS_REPEAT+2;
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
