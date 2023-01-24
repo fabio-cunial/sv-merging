@@ -92,3 +92,5 @@ RUN wget https://github.com/samtools/bcftools/releases/download/${bcftools_versi
 RUN pip install truvari==${truvari_version} \
     && truvari --help
 
+COPY *.java .
+RUN javac *.java

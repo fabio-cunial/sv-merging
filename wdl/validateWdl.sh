@@ -3,4 +3,5 @@
 set -x
 WOMTOOL_PATH="/Users/fcunial/apps/cromwell/womtool-84.jar"
 
-java -jar ${WOMTOOL_PATH} validate -l GetVCFs.wdl -i inputs/GetVCFs.json
+java -jar ${WOMTOOL_PATH} validate -l GetVCFs.wdl -i inputs/private_GetVCFs.json
+java -jar ${WOMTOOL_PATH} validate -l VisualizeSVs.wdl -i inputs/private_VisualizeSVs.json

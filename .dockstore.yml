@@ -5,3 +5,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/GetVCFs.wdl
   testParameterFiles:
+- name: VisualizeSVs
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/VisualizeSVs.wdl
+  testParameterFiles:
