@@ -75,7 +75,7 @@ public class PrintPopulationSVs {
         histogram=null;
         N_ROWS=0;
         for (i=0; i<maxRows.length; i++) N_ROWS+=maxRows[i]+1;
-        N_ROWS+=2*(HEIGHT_PIXELS_REPEAT+2+1);
+        N_ROWS+=2*((HEIGHT_PIXELS_REPEAT+2)*10+1);  // 10 arbitrary (for repeats).
         
         System.err.println("Allocating image...");
         image = new BufferedImage(N_COLUMNS,N_ROWS,BufferedImage.TYPE_INT_RGB);
@@ -109,20 +109,21 @@ public class PrintPopulationSVs {
         y++;
         
         System.err.println("Printing: RepeatMasker annotations");
-        drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT+1);
-        y+=HEIGHT_PIXELS_REPEAT+2;
+        yMax=drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,N_ROWS-1);
+        y=yMax+1;
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
         System.err.println("Printing: TRF annotations");
-        drawTrfAnnotations(TRF_FILE,TRF_FILE_NROWS,CHR,FROM_POS,TO_POS,y,y+HEIGHT_PIXELS_REPEAT+1);
-        y+=HEIGHT_PIXELS_REPEAT+2;
+        yMax=drawTrfAnnotations(TRF_FILE,TRF_FILE_NROWS,CHR,FROM_POS,TO_POS,y,N_ROWS-1);
+        y=yMax+1;
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
         System.err.println("Printing: bcftools merge");
-        drawFile(-1,INPUT_FILE_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[4]-1);
-        y+=maxRows[4];
+        yMax=y+maxRows[4]-1;
+        if (yMax>N_ROWS-1) yMax=N_ROWS-1;
+        drawFile(-1,INPUT_FILE_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,yMax);
         
         ImageIO.write(image,"png",new File(OUTPUT_FILE));
     }
@@ -188,23 +189,15 @@ public class PrintPopulationSVs {
         }
         if (fileID>=0) return -1;
         
-if (fabio) System.err.println("drawSV> 1");
         y=frameFromY;
 		while (true) {
-            if (y>frameToY) {
-if (fabio) System.err.println("drawSV> 2  y="+y+" frameToY="+frameToY);
-                return frameToY;
-            }
+            if (y>frameToY) return frameToY;
 			found=false;
 			for (x=fromX; x<=toX; x++) {
                 for (j=0; j<heightPixels+2; j++) {
-                    if (y+j>frameToY) {
-if (fabio) System.err.println("drawSV> 3  y+j="+(y+j)+" frameToY="+frameToY);                        
-                        return frameToY;
-                    }
+                    if (y+j>frameToY) return frameToY;
     				if ((image.getRGB(x,y+j)&MASK)!=(COLOR_BACKGROUND&MASK)) {
     					found=true;
-if (fabio) System.err.println("drawSV> 4");
     					break;
     				}
                 }
@@ -212,16 +205,11 @@ if (fabio) System.err.println("drawSV> 4");
 			if (found) y++;
 			else break;
 		}
-if (fabio) System.err.println("drawSV> 5");
         for (x=fromX; x<=toX; x++) image.setRGB(x,y,COLOR_BACKGROUND_LIGHT);
         for (i=0; i<heightPixels; i++) {
-            if (y+1+i>frameToY) {
-if (fabio) System.err.println("drawSV> 6");
-                return frameToY;
-            }
+            if (y+1+i>frameToY) return frameToY;
             for (x=fromX; x<=toX; x++) image.setRGB(x,y+1+i,color);
         }
-if (fabio) System.err.println("drawSV> 7");
         image.setRGB(fromX,y+1+heightPixels/2,COLOR_SV_START);
         if (y+heightPixels+1<=frameToY) {
             for (x=fromX; x<=toX; x++) image.setRGB(x,y+heightPixels+1,COLOR_BACKGROUND_LIGHT);
@@ -229,61 +217,60 @@ if (fabio) System.err.println("drawSV> 7");
         }
         else return frameToY;
     }
-    
-private static boolean fabio = false; 
+
     
 	/**
 	 * @param path assumed to be a cleaned version of the original RepeatMasker 
 	 * file from the UCSC Genome Browser, with runs of spaces replaced by a 
 	 * single comma, without header, and already sorted by contig (according to
 	 * $VCF2gfa.string2contig()$: this is not the lex order) and starting 
-	 * position.
+	 * position;
+     * @return the largest value of Y used for drawing.
 	 */
-	private static final void drawRepeatMaskerAnnotations(String path, int nRecords, String chr, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
+	private static final int drawRepeatMaskerAnnotations(String path, int nRecords, String chr, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
         boolean isSatellite, sameChromosome;
-		int i, j, k;
-		int referenceStart, referenceEnd;
+		int i, j, k, y;
+		int referenceStart, referenceEnd, yMax;
 		String str;
 		BufferedReader br;
 		String[] tokens;
 
 		br = new BufferedReader(new FileReader(path));
-		str=br.readLine();
+		str=br.readLine(); yMax=-1;
 		while (str!=null) {
 			tokens=str.split(",");
             referenceStart=Integer.parseInt(tokens[5]);
             sameChromosome=tokens[4].equalsIgnoreCase(chr);
-// System.err.println("drawRepeatMaskerAnnotations> 1  referenceStart="+referenceStart+" sameChromosome="+sameChromosome+" tokens[4]="+tokens[4]+" chr="+chr);
             if (!sameChromosome || referenceStart<frameFromX) {
                 str=br.readLine();
                 continue;
             }
-System.err.println("drawRepeatMaskerAnnotations> 2");
             if (sameChromosome && referenceStart>frameToX) break;
-System.err.println("drawRepeatMaskerAnnotations> 3");
             str=tokens[10].toLowerCase();
 			isSatellite=str.indexOf("satellite")>=0 || str.indexOf("sat")>=0 || str.indexOf("simple")>=0 || str.indexOf("low_complexity")>=0;
 			referenceEnd=Integer.parseInt(tokens[6]);
-System.err.println("drawRepeatMaskerAnnotations> 4  frameFromY="+frameFromY+" frameToY="+frameToY+" frameFromX="+frameFromX+" frameToX="+frameToX+" referenceStart="+referenceStart+" referenceEnd="+referenceEnd);
-fabio=true;
-            drawSV(-1,frameFromX,frameFromY,frameToY,referenceStart,referenceEnd,isSatellite?COLOR_REPEAT_SATELLITE:COLOR_REPEAT,HEIGHT_PIXELS_REPEAT);
-fabio=false;
+            y=drawSV(-1,frameFromX,frameFromY,frameToY,referenceStart,referenceEnd,isSatellite?COLOR_REPEAT_SATELLITE:COLOR_REPEAT,HEIGHT_PIXELS_REPEAT);
+            if (y>yMax) yMax=y;
 			str=br.readLine();
 		}
 		br.close();
+        return yMax;
     }
 
-    
-	private static final void drawTrfAnnotations(String path, int nRecords, String chr, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
+
+    /**
+     * @return the largest value of Y used for drawing.
+     */
+	private static final int drawTrfAnnotations(String path, int nRecords, String chr, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
         boolean isSatellite, sameChromosome;
-		int i, j, k;
-		int referenceStart, referenceEnd;
+		int i, j, k, y;
+		int referenceStart, referenceEnd, yMax;
 		String str;
 		BufferedReader br;
 		String[] tokens;
 
 		br = new BufferedReader(new FileReader(path));
-		str=br.readLine();
+		str=br.readLine(); yMax=-1;
 		while (str!=null) {
 			tokens=str.split(",");
             sameChromosome=tokens[0].equalsIgnoreCase(chr);
@@ -294,10 +281,12 @@ fabio=false;
             }
             if (sameChromosome && referenceStart>frameToX) break;
             referenceEnd=Integer.parseInt(tokens[2]);
-            drawSV(-1,frameFromX,frameFromY,frameToY,referenceStart,referenceEnd,COLOR_REPEAT_SATELLITE,HEIGHT_PIXELS_REPEAT);
+            y=drawSV(-1,frameFromX,frameFromY,frameToY,referenceStart,referenceEnd,COLOR_REPEAT_SATELLITE,HEIGHT_PIXELS_REPEAT);
+            if (y>yMax) yMax=y;
 			str=br.readLine();
 		}
 		br.close();
+        return yMax;
     }
     
     
