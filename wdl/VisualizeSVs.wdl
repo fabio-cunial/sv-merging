@@ -29,7 +29,7 @@ workflow VisualizeSVs {
 
 task VisualizeSVsImpl {
     input {
-        File remote_vcf_dir
+        String remote_vcf_dir
         String chr
         Int pos_from
         Int pos_to
