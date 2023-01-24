@@ -36,6 +36,8 @@ task VisualizeSVsImpl {
         File show_svs_in_intervals
     }
     
+    Int ram_gb = 64  # Arbitrary
+    Int ram_gb_effective = ram_gb - 4
     String docker_dir = "/sv-merging"
     String work_dir = "/cromwell_root/sv-merging"
     
@@ -62,7 +64,7 @@ task VisualizeSVsImpl {
         OUTPUT_FILE="mergedSVs_~{chr}_~{pos_from}_~{pos_to}.png"
         REPEAT_MASKER_FILE="hg38.sorted.fa.out.cleaned.orderedByChromosome"
         TRF_FILE="grch38_noalt-human_GRCh38_no_alt_analysis_set.trf.bed.orderedByChromosome"
-        ${TIME_COMMAND} java -cp ~{docker_dir} PrintPopulationSVs merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf ${OUTPUT_FILE} ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE})
+        ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf ${OUTPUT_FILE} ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE})
         while : ; do
             TEST=$(gsutil -m ${GSUTIL_UPLOAD_THRESHOLD} cp ${OUTPUT_FILE} ~{remote_vcf_dir} && echo 0 || echo 1)
             if [ ${TEST} -eq 1 ]; then
@@ -76,7 +78,7 @@ task VisualizeSVsImpl {
         # Printing SVs that start in specified intervals (if any).
         if [ $(wc -l < ~{show_svs_in_intervals}) -gt 0 ]; then
             for i in $(seq 1 5); do
-                bgzip merged.${i}.vcf
+                bcftools sort --output-type z --output merged.${i}.vcf.gz merged.${i}.vcf
                 tabix merged.${i}.vcf.gz
             done
             while read REGION; do
@@ -95,7 +97,7 @@ task VisualizeSVsImpl {
     runtime {
         docker: "fcunial/sv-merging"
         cpu: 1  # bcftools and truvari are sequential
-        memory: "64GB"  # Arbitrary
+        memory: ram_gb + "GB"  # Arbitrary
         disks: "local-disk 250 HDD"  # Arbitrary
         preemptible: 0
     }
