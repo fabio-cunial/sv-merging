@@ -83,14 +83,18 @@ task VisualizeSVsImpl {
             done
             while read REGION; do
                 for i in $(seq 1 5); do
-                    echo ""
-                    echo "==== SVs that start inside ${REGION} in file merged.${i}.vcf.gz:"
-                    bcftools view --no-header --regions ${REGION} --output-type v merged.${i}.vcf.gz
-                    echo ""
-                    echo "First 1000 SVs in file merged.${i}.vcf.gz:"
-                    bcftools view --no-header --output-type v merged.${i}.vcf.gz | head -n 1000
+                    bcftools view --no-header --regions ${REGION} --output-type v merged.${i}.vcf.gz > merged.${i}.in.${REGION}.txt
                 done
             done < ~{show_svs_in_intervals}
+            while : ; do
+                TEST=$(gsutil -m ${GSUTIL_UPLOAD_THRESHOLD} cp "*.in.*.txt" ~{remote_vcf_dir} && echo 0 || echo 1)
+                if [ ${TEST} -eq 1 ]; then
+                    echo "Error uploading query intervals. Trying again..."
+                    sleep ${GSUTIL_DELAY_S}
+                else
+                    break
+                fi
+            done
         fi
     >>>
     output {
