@@ -85,7 +85,7 @@ task VisualizeSVsImpl {
                 for i in $(seq 1 5); do
                     echo ""
                     echo "==== SVs that start inside ${REGION} in file merged.${i}.vcf.gz:"
-                    bcftools view --regions ${REGION} --output-type v merged.${i}.vcf.gz
+                    bcftools view --no-header --regions ${REGION} --output-type v merged.${i}.vcf.gz
                     echo ""
                 done
             done < ~{show_svs_in_intervals}

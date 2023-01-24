@@ -188,15 +188,23 @@ public class PrintPopulationSVs {
         }
         if (fileID>=0) return -1;
         
+if (fabio) System.err.println("drawSV> 1");
         y=frameFromY;
 		while (true) {
-            if (y>frameToY) return frameToY;
+            if (y>frameToY) {
+if (fabio) System.err.println("drawSV> 2  y="+y+" frameToY="+frameToY);
+                return frameToY;
+            }
 			found=false;
 			for (x=fromX; x<=toX; x++) {
                 for (j=0; j<heightPixels+2; j++) {
-                    if (y+j>frameToY) return frameToY;
+                    if (y+j>frameToY) {
+if (fabio) System.err.println("drawSV> 3  y+j="+(y+j)+" frameToY="+frameToY);                        
+                        return frameToY;
+                    }
     				if ((image.getRGB(x,y+j)&MASK)!=(COLOR_BACKGROUND&MASK)) {
     					found=true;
+if (fabio) System.err.println("drawSV> 4");
     					break;
     				}
                 }
@@ -204,11 +212,16 @@ public class PrintPopulationSVs {
 			if (found) y++;
 			else break;
 		}
+if (fabio) System.err.println("drawSV> 5");
         for (x=fromX; x<=toX; x++) image.setRGB(x,y,COLOR_BACKGROUND_LIGHT);
         for (i=0; i<heightPixels; i++) {
-            if (y+1+i>frameToY) return frameToY;
+            if (y+1+i>frameToY) {
+if (fabio) System.err.println("drawSV> 6");
+                return frameToY;
+            }
             for (x=fromX; x<=toX; x++) image.setRGB(x,y+1+i,color);
         }
+if (fabio) System.err.println("drawSV> 7");
         image.setRGB(fromX,y+1+heightPixels/2,COLOR_SV_START);
         if (y+heightPixels+1<=frameToY) {
             for (x=fromX; x<=toX; x++) image.setRGB(x,y+heightPixels+1,COLOR_BACKGROUND_LIGHT);
@@ -217,6 +230,7 @@ public class PrintPopulationSVs {
         else return frameToY;
     }
     
+private static boolean fabio = false; 
     
 	/**
 	 * @param path assumed to be a cleaned version of the original RepeatMasker 
@@ -239,7 +253,7 @@ public class PrintPopulationSVs {
 			tokens=str.split(",");
             referenceStart=Integer.parseInt(tokens[5]);
             sameChromosome=tokens[4].equalsIgnoreCase(chr);
-System.err.println("drawRepeatMaskerAnnotations> 1  referenceStart="+referenceStart+" sameChromosome="+sameChromosome+" tokens[4]="+tokens[4]+" chr="+chr);            
+// System.err.println("drawRepeatMaskerAnnotations> 1  referenceStart="+referenceStart+" sameChromosome="+sameChromosome+" tokens[4]="+tokens[4]+" chr="+chr);
             if (!sameChromosome || referenceStart<frameFromX) {
                 str=br.readLine();
                 continue;
@@ -250,8 +264,10 @@ System.err.println("drawRepeatMaskerAnnotations> 3");
             str=tokens[10].toLowerCase();
 			isSatellite=str.indexOf("satellite")>=0 || str.indexOf("sat")>=0 || str.indexOf("simple")>=0 || str.indexOf("low_complexity")>=0;
 			referenceEnd=Integer.parseInt(tokens[6]);
-System.err.println("drawRepeatMaskerAnnotations> 4  frameFromY="+frameFromY+" frameToY="+frameToY+" referenceStart="+referenceStart+" referenceEnd="+referenceEnd);            
+System.err.println("drawRepeatMaskerAnnotations> 4  frameFromY="+frameFromY+" frameToY="+frameToY+" frameFromX="+frameFromX+" frameToX="+frameToX+" referenceStart="+referenceStart+" referenceEnd="+referenceEnd);
+fabio=true;
             drawSV(-1,frameFromX,frameFromY,frameToY,referenceStart,referenceEnd,isSatellite?COLOR_REPEAT_SATELLITE:COLOR_REPEAT,HEIGHT_PIXELS_REPEAT);
+fabio=false;
 			str=br.readLine();
 		}
 		br.close();
