@@ -75,7 +75,7 @@ public class PrintPopulationSVs {
         histogram=null;
         N_ROWS=0;
         for (i=0; i<maxRows.length; i++) N_ROWS+=maxRows[i]+1;
-        N_ROWS+=2*(HEIGHT_PIXELS_REPEAT+1);
+        N_ROWS+=2*(HEIGHT_PIXELS_REPEAT+2+1);
         
         System.err.println("Allocating image...");
         image = new BufferedImage(N_COLUMNS,N_ROWS,BufferedImage.TYPE_INT_RGB);
