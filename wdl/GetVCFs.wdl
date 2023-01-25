@@ -133,19 +133,66 @@ task GetVCFsImpl {
         fi
         
         # survivor. Parameters are set to truvari's defaults.
-        TEST=$(gsutil -q stat ~{output_dir}/merged.6.vcf && echo 0 || echo 1)
+        TEST=$(gsutil -q stat ~{output_dir}/survivor.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             touch list_prime.txt
             while read VCF_GZ_FILE; do
                 gunzip ${VCF_GZ_FILE}
                 echo ${VCF_GZ_FILE%.gz} >> list_prime.txt
             done < list.txt
-            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 merged.6.vcf
-            uploadVCF merged.6.vcf " "
-            rm -f merged.6.vcf
+            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 survivor.vcf
+            uploadVCF survivor.vcf " "
+            rm -f survivor.vcf
         fi
         
-        
+        # svpop. Parameters are set to truvari's defaults.
+        TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            rm -rf config/; mkdir config/
+            touch config/samples.tsv
+            echo "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
+            echo "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/${sample}.vcf\t2\t\t"  >> config/samples.tsv
+            cat config/samples.tsv
+            touch config/config.json
+            echo "{" >> config/config.json
+            echo "\"reference\": \"~{reference_fa}\"," >> config/config.json
+            echo "\"ucsc_ref_name\": \"hg38\"," >> config/config.json
+            # samplelist section
+            echo "\"samplelist\": {" >> config/config.json
+            echo "\"mySamples\": [" >> config/config.json
+            read VCF_FILE < list.txt
+            echo -n "\"${VCF_FILE%.vcf}\"" >> config/samples.tsv
+            while read VCF_FILE; do
+                echo -n ",\n\"${VCF_FILE%.vcf}\"" >> config/samples.tsv
+            done < list.txt
+            echo "\n]" >> config/samples.tsv
+            echo "}" >> config/config.json
+            # sampleset section
+            echo "\"sampleset\": {" >> config/config.json
+            echo "\"myMerge\": {" >> config/config.json
+            echo "\"sourcename\": \"sniffles2\"," >> config/config.json
+            echo "\"sourcetype\": \"sniffles\"," >> config/config.json
+            echo "\"merge\": \"nr::szro(szro=0.7,dist=500,match(score=0.7,limit=4000,ksize=9))\"," >> config/config.json
+            echo "}" >> config/config.json
+            echo "\"name\": \"myMerge\"," >> config/config.json
+            echo "\"description\": \"myMerge\"" >> config/config.json
+            echo "}" >> config/config.json
+            # end of config file
+            echo "}" >> config/config.json
+            cat config/config.json
+            source activate svpop
+            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
+            tree
+            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
+            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
+            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
+            conda deactivate
+            zcat results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz \
+                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz \
+                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz \
+                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz | gzip > svpop.bed.gz
+            uploadVCF svpop.bed.gz " "
+        fi
         
         
         

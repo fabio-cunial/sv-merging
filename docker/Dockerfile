@@ -101,6 +101,14 @@ RUN wget https://github.com/fritzsedlazeck/SURVIVOR/archive/refs/tags/${survivor
 ENV PATH=${work_dir}/SURVIVOR-${survivor_version}/Debug:${PATH}
 RUN SURVIVOR
 
+# SVPOP
+COPY ./svpop_environment.yml .
+RUN conda env create -f ./svpop_environment.yml \
+    && conda clean --packages --tempfiles --logfiles
+SHELL ["conda", "run", "-n", "svpop", "/bin/bash", "-c"]
+RUN echo "conda init bash" > ~/.bashrc
+RUN git clone --recursive https://github.com/EichlerLab/svpop.git
+
 
 COPY *.java .
 RUN javac *.java
