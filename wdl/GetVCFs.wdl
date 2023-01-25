@@ -161,19 +161,19 @@ task GetVCFsImpl {
             echo "\"samplelist\": {" >> config/config.json
             echo "\"mySamples\": [" >> config/config.json
             read VCF_FILE < list.txt
-            echo -n "\"${VCF_FILE%.vcf}\"" >> config/samples.tsv
+            echo -n "\"${VCF_FILE%.vcf}\"" >> config/config.json
             while read VCF_FILE; do
-                echo -n ",\n\"${VCF_FILE%.vcf}\"" >> config/samples.tsv
+                echo -en ",\n\"${VCF_FILE%.vcf}\"" >> config/config.json
             done < list.txt
-            echo "\n]" >> config/samples.tsv
-            echo "}" >> config/config.json
+            echo -e "\n]" >> config/config.json
+            echo "}," >> config/config.json
             # sampleset section
             echo "\"sampleset\": {" >> config/config.json
             echo "\"myMerge\": {" >> config/config.json
             echo "\"sourcename\": \"sniffles2\"," >> config/config.json
             echo "\"sourcetype\": \"sniffles\"," >> config/config.json
             echo "\"merge\": \"nr::szro(szro=0.7,dist=500,match(score=0.7,limit=4000,ksize=9))\"," >> config/config.json
-            echo "}" >> config/config.json
+            echo "}," >> config/config.json
             echo "\"name\": \"myMerge\"," >> config/config.json
             echo "\"description\": \"myMerge\"" >> config/config.json
             echo "}" >> config/config.json
