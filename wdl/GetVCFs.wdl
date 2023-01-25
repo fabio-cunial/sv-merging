@@ -89,7 +89,7 @@ task GetVCFsImpl {
             done
             LOCAL_FILE=$(basename -s .vcf.gz ${VCF_FILE})
             tabix ${LOCAL_FILE}.vcf.gz
-            bcftools view --threads ${N_THREADS} --regions "~{region}" --output-type z ${LOCAL_FILE}.vcf.gz > tmp.vcf.gz
+            bcftools filter --threads ${N_THREADS} --regions "~{region}" --include "FILTER=\"PASS\"" --output-type z ${LOCAL_FILE}.vcf.gz > tmp.vcf.gz
             rm -f ${LOCAL_FILE}.vcf.gz
             tabix tmp.vcf.gz
             bcftools sort --output-type z tmp.vcf.gz > ${LOCAL_FILE}.region.vcf.gz
@@ -98,11 +98,12 @@ task GetVCFsImpl {
             echo ${LOCAL_FILE}.region.vcf.gz >> list.txt
         done < ~{vcf_addresses}
         
-        # Merging SVs
+        # bcftools merge
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output merged.1.vcf.gz
         uploadVCF "merged.1.vcf.gz" " "
         tabix merged.1.vcf.gz
         
+        # truvari collapse
         TEST=$(gsutil -q stat ~{output_dir}/merged.2.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.2.vcf --collapsed-output collapsed.2.vcf --reference ~{reference_fa} --keep first --passonly
@@ -130,6 +131,25 @@ task GetVCFsImpl {
             uploadVCF merged.5.vcf collapsed.5.vcf
             rm -f merged.5.vcf collapsed.5.vcf
         fi
+        
+        # survivor. Parameters are set to truvari's defaults.
+        TEST=$(gsutil -q stat ~{output_dir}/merged.6.vcf && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            touch list_prime.txt
+            while read VCF_GZ_FILE; do
+                gunzip ${VCF_GZ_FILE}
+                echo ${VCF_GZ_FILE%.gz} >> list_prime.txt
+            done < list.txt
+            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 merged.6.vcf
+            uploadVCF merged.6.vcf " "
+            rm -f merged.6.vcf
+        fi
+        
+        
+        
+        
+        
+        
     >>>
     output {
     }

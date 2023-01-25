@@ -11,7 +11,7 @@ workflow VisualizeSVs {
         File show_svs_in_intervals
     }
     parameter_meta {
-        show_svs_in_intervals: "File containing a possibly empty list of intervals (as in bcftools view). The program prints to STDOUT all the SVs that start inside each interval, from every file."
+        show_svs_in_intervals: "File containing a possibly empty list of intervals (as in bcftools view). The program prints to STDOUT all the SVs that intersect each interval, from every file."
     }
     call VisualizeSVsImpl {
         input:
@@ -22,7 +22,6 @@ workflow VisualizeSVs {
             show_svs_in_intervals = show_svs_in_intervals
     }
     output {
-        File log = VisualizeSVsImpl.log
     }
 }
 
@@ -98,7 +97,6 @@ task VisualizeSVsImpl {
         fi
     >>>
     output {
-        File log = stdout()
     }
     runtime {
         docker: "fcunial/sv-merging"

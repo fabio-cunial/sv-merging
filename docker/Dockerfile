@@ -10,6 +10,7 @@ ARG htslib_version=1.16
 ARG samtools_version=1.16.1
 ARG bcftools_version=1.16
 ARG truvari_version=3.5.0
+ARG survivor_version=1.0.7
 # ------------------------------------------------------------------------------
 
 
@@ -91,6 +92,15 @@ RUN wget https://github.com/samtools/bcftools/releases/download/${bcftools_versi
 # TRUVARI
 RUN pip install truvari==${truvari_version} \
     && truvari --help
+
+# SURVIVOR
+RUN wget https://github.com/fritzsedlazeck/SURVIVOR/archive/refs/tags/${survivor_version}.tar.gz -O SURVIVOR.tar.gz \
+    && tar xzvf SURVIVOR.tar.gz \
+    && cd SURVIVOR-${survivor_version}/Debug/ \
+    && make
+ENV PATH=${work_dir}/SURVIVOR-${survivor_version}/Debug:${PATH}
+RUN SURVIVOR
+
 
 COPY *.java .
 RUN javac *.java
