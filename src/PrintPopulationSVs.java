@@ -31,19 +31,20 @@ public class PrintPopulationSVs {
     
 
     public static void main(String[] args) throws Exception {
-        final String INPUT_FILE_1 = args[0];
-        final String INPUT_FILE_2 = args[1];
-        final String INPUT_FILE_3 = args[2];
-        final String INPUT_FILE_4 = args[3];
-        final String INPUT_FILE_5 = args[4];
-        final String OUTPUT_FILE = args[5];
-        final String CHR = args[6];
-        final int FROM_POS = Integer.parseInt(args[7]);
-        final int TO_POS = Integer.parseInt(args[8]);
-        final String REPEAT_MASKER_FILE = args[9];
-        final int REPEAT_MASKER_NROWS = Integer.parseInt(args[10]);
-        final String TRF_FILE = args[11];
-        final int TRF_FILE_NROWS = Integer.parseInt(args[12]);
+        final String CHR = args[0];
+        final int FROM_POS = Integer.parseInt(args[1]);
+        final int TO_POS = Integer.parseInt(args[2]);
+        final String REPEAT_MASKER_FILE = args[3];
+        final int REPEAT_MASKER_NROWS = Integer.parseInt(args[4]);
+        final String TRF_FILE = args[5];
+        final int TRF_FILE_NROWS = Integer.parseInt(args[6]);
+        final String INPUT_FILE_BCFTOOLS_MERGE = args[7];
+        final String INPUT_FILE_TRUVARI_1 = args[8];
+        final String INPUT_FILE_TRUVARI_2 = args[9];
+        final String INPUT_FILE_TRUVARI_3 = args[10];
+        final String INPUT_FILE_TRUVARI_4 = args[11];
+        final String INPUT_FILE_SURVIVOR = args[12];
+        final String OUTPUT_FILE = args[13];
         
         final boolean ONLY_PASS = true;
         N_COLUMNS=(TO_POS-FROM_POS)/QUANTUM+1;
@@ -58,12 +59,13 @@ public class PrintPopulationSVs {
         
         
         System.err.println("Estimating number of rows...");
-        histogram = new int[5][N_COLUMNS];
-        drawFile(0,INPUT_FILE_2,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawFile(1,INPUT_FILE_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawFile(2,INPUT_FILE_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawFile(3,INPUT_FILE_5,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawFile(4,INPUT_FILE_1,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        histogram = new int[6][N_COLUMNS];
+        drawVCF(0,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawVCF(1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawVCF(2,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawVCF(5,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         maxRows = new int[histogram.length];
         for (i=0; i<histogram.length; i++) {
             maxRows[i]=0;
@@ -84,27 +86,33 @@ public class PrintPopulationSVs {
 		}
         y=0;
         
-        System.err.println("Printing: truvari collapse --keep first");
-        drawFile(-1,INPUT_FILE_2,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[0]-1);
+        System.err.println("Printing: truvari collapse 1");
+        drawVCF(-1,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[0]-1);
         y+=maxRows[0];
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
-        System.err.println("Printing: truvari collapse --keep maxqual");
-        drawFile(-1,INPUT_FILE_3,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[1]-1);
+        System.err.println("Printing: truvari collapse 2");
+        drawVCF(-1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[1]-1);
         y+=maxRows[1];
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
-        System.err.println("Printing: truvari collapse --keep common");
-        drawFile(-1,INPUT_FILE_4,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
+        System.err.println("Printing: truvari collapse 3");
+        drawVCF(-1,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
         y+=maxRows[2];
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
-        System.err.println("Printing: truvari collapse --keep common --chain");
-        drawFile(-1,INPUT_FILE_5,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[3]-1);
+        System.err.println("Printing: truvari collapse 4");
+        drawVCF(-1,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[3]-1);
         y+=maxRows[3];
+        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        y++;
+        
+        System.err.println("Printing: survivor");
+        drawVCF(-1,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
+        y+=maxRows[4];
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
@@ -121,15 +129,15 @@ public class PrintPopulationSVs {
         y++;
         
         System.err.println("Printing: bcftools merge");
-        yMax=y+maxRows[4]-1;
+        yMax=y+maxRows[5]-1;
         if (yMax>N_ROWS-1) yMax=N_ROWS-1;
-        drawFile(-1,INPUT_FILE_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,yMax);
+        drawVCF(-1,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,y,yMax);
         
         ImageIO.write(image,"png",new File(OUTPUT_FILE));
     }
     
     
-    private static final int drawFile(int fileID, String path, String chr, boolean onlyPass, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
+    private static final int drawVCF(int fileID, String path, String chr, boolean onlyPass, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
         boolean sameChromosome;
         int x, y, y0, yMax, yPrime;
         int type, length, color, position;

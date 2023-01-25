@@ -51,7 +51,10 @@ task VisualizeSVsImpl {
         
         # Visualizing SVs
         while : ; do
-            TEST=$(gsutil -m cp ~{remote_vcf_dir}/merged.1.vcf.gz ~{remote_vcf_dir}/merged.2.vcf ~{remote_vcf_dir}/merged.3.vcf ~{remote_vcf_dir}/merged.4.vcf ~{remote_vcf_dir}/merged.5.vcf ~{remote_vcf_dir}/hg38.sorted.fa.out.cleaned.orderedByChromosome  ~{remote_vcf_dir}/grch38_noalt-human_GRCh38_no_alt_analysis_set.trf.bed.orderedByChromosome . && echo 0 || echo 1)
+            TEST=$(gsutil -m cp ~{remote_vcf_dir}/merged.1.vcf.gz ~{remote_vcf_dir}/merged.2.vcf ~{remote_vcf_dir}/merged.3.vcf ~{remote_vcf_dir}/merged.4.vcf ~{remote_vcf_dir}/merged.5.vcf \
+                ~{remote_vcf_dir}/survivor.vcf \
+                ~{remote_vcf_dir}/hg38.sorted.fa.out.cleaned.orderedByChromosome ~{remote_vcf_dir}/grch38_noalt-human_GRCh38_no_alt_analysis_set.trf.bed.orderedByChromosome \
+                . && echo 0 || echo 1)
             if [ ${TEST} -eq 1 ]; then
                 echo "Error downloading files. Trying again..."
                 sleep ${GSUTIL_DELAY_S}
@@ -63,7 +66,10 @@ task VisualizeSVsImpl {
         OUTPUT_FILE="mergedSVs_~{chr}_~{pos_from}_~{pos_to}.png"
         REPEAT_MASKER_FILE="hg38.sorted.fa.out.cleaned.orderedByChromosome"
         TRF_FILE="grch38_noalt-human_GRCh38_no_alt_analysis_set.trf.bed.orderedByChromosome"
-        ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf ${OUTPUT_FILE} ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE})
+        ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE}) \
+            merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf \
+            survivor.vcf \
+            ${OUTPUT_FILE}
         while : ; do
             TEST=$(gsutil -m ${GSUTIL_UPLOAD_THRESHOLD} cp ${OUTPUT_FILE} ~{remote_vcf_dir} && echo 0 || echo 1)
             if [ ${TEST} -eq 1 ]; then
@@ -84,6 +90,11 @@ task VisualizeSVsImpl {
                 for i in $(seq 1 5); do
                     bcftools view --no-header --regions ${REGION} --output-type v merged.${i}.vcf.gz > merged.${i}.in.${REGION}.txt
                 done
+            done < ~{show_svs_in_intervals}
+            bcftools sort --output-type z --output survivor.vcf.gz survivor.vcf
+            tabix survivor.vcf.gz
+            while read REGION; do
+                bcftools view --no-header --regions ${REGION} --output-type v survivor.vcf.gz > survivor.in.${REGION}.txt
             done < ~{show_svs_in_intervals}
             while : ; do
                 TEST=$(gsutil -m ${GSUTIL_UPLOAD_THRESHOLD} cp "*.in.*.txt" ~{remote_vcf_dir} && echo 0 || echo 1)
