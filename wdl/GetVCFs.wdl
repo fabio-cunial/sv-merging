@@ -99,9 +99,9 @@ task GetVCFsImpl {
         done < ~{vcf_addresses}
         
         # bcftools merge
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output merged.1.vcf.gz
-        uploadVCF "merged.1.vcf.gz" " "
-        tabix merged.1.vcf.gz
+        #${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output merged.1.vcf.gz
+        #uploadVCF "merged.1.vcf.gz" " "
+        #tabix merged.1.vcf.gz
         
         # truvari collapse
         TEST=$(gsutil -q stat ~{output_dir}/merged.2.vcf && echo 0 || echo 1)
