@@ -151,7 +151,7 @@ task GetVCFsImpl {
             rm -rf config/; mkdir config/
             touch config/samples.tsv
             echo "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
-            echo "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/${sample}.vcf\t2\t\t"  >> config/samples.tsv
+            echo "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/{sample}.vcf\t2\t\t"  >> config/samples.tsv
             cat config/samples.tsv
             touch config/config.json
             echo "{" >> config/config.json
