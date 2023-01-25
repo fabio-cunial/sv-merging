@@ -178,6 +178,56 @@ public class PrintPopulationSVs {
         return yMax;
     }
     
+    
+    
+    
+    
+    private static final int drawBED(int fileID, String path, String chr, boolean onlyPass, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
+        boolean sameChromosome;
+        int x, y, y0, yMax, yPrime;
+        int type, length, color, position;
+        String str;
+        BufferedReader br;
+        String[] tokens;
+        
+        br = new BufferedReader(new FileReader(path));
+        str=br.readLine(); yMax=-1;
+        while (str!=null) {
+            if (str.charAt(0)==COMMENT) {
+                str=br.readLine();
+                continue;
+            }
+            tokens=str.split("\t");
+            position=Integer.parseInt(tokens[1]);
+            sameChromosome=tokens[0].equalsIgnoreCase(chr);
+            if (!sameChromosome || position<frameFromX) {
+                str=br.readLine();
+                continue;
+            }
+            if (sameChromosome && position>frameToX) break;
+			if (onlyPass && !tokens[6].equalsIgnoreCase(PASS_STR)) {
+				str=br.readLine();
+				continue;
+			}
+            type=getType_infoField(getField(tokens[7],SVTYPE_STR));     
+            if (type!=TYPE_INSERTION && type!=TYPE_BREAKEND) {
+                color=TYPE_COLORS[type-1];
+                length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
+                if (length<0) length=-length;
+                yPrime=drawSV(fileID,frameFromX,frameFromY,frameToY,position,position+length-1,color,HEIGHT_PIXELS_FILE);
+                if (yPrime>yMax) yMax=yPrime;
+            }
+            str=br.readLine();
+        }
+        br.close();
+        return yMax;
+    }
+    
+    
+    
+    
+    
+    
 
     /**
      * @param fileID if >=0, the procedure just increments global variable

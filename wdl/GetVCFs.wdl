@@ -76,17 +76,15 @@ task GetVCFsImpl {
         }
         
         # Downloading VCF regions
+        TEST=$(cat ~{vcf_addresses} | gsutil -m cp -I . && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            echo "Error downloading VCF files. Trying again..."
+            sleep ${GSUTIL_DELAY_S}
+        else
+            break
+        fi
         touch list.txt
         while read VCF_FILE; do
-            while : ; do
-                TEST=$(gsutil cp ${VCF_FILE} . && echo 0 || echo 1)
-                if [ ${TEST} -eq 1 ]; then
-                    echo "Error downloading file <${VCF_FILE}>. Trying again..."
-                    sleep ${GSUTIL_DELAY_S}
-                else
-                    break
-                fi
-            done
             LOCAL_FILE=$(basename -s .vcf.gz ${VCF_FILE})
             tabix ${LOCAL_FILE}.vcf.gz
             bcftools filter --threads ${N_THREADS} --regions "~{region}" --include "FILTER=\"PASS\"" --output-type z ${LOCAL_FILE}.vcf.gz > tmp.vcf.gz
@@ -181,11 +179,11 @@ task GetVCFsImpl {
             echo "}" >> config/config.json
             cat config/config.json
             source activate svpop
-            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
+            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
             tree
-            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
-            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
-            ${TIME_COMMAND} snakemake -s ${DOCKER_DIR}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
+            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
+            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
+            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
             conda deactivate
             zcat results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz \
                  results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz \
