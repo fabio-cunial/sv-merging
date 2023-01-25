@@ -80,18 +80,16 @@ task GetVCFsImpl {
         if [ ${TEST} -eq 1 ]; then
             echo "Error downloading VCF files. Trying again..."
             sleep ${GSUTIL_DELAY_S}
-        else
-            break
         fi
         touch list.txt
         while read VCF_FILE; do
             LOCAL_FILE=$(basename -s .vcf.gz ${VCF_FILE})
             tabix ${LOCAL_FILE}.vcf.gz
             bcftools filter --threads ${N_THREADS} --regions "~{region}" --include "FILTER=\"PASS\"" --output-type z ${LOCAL_FILE}.vcf.gz > tmp.vcf.gz
-            rm -f ${LOCAL_FILE}.vcf.gz
+            rm -f ${LOCAL_FILE}.vcf.gz ${LOCAL_FILE}.vcf.gz.tbi
             tabix tmp.vcf.gz
             bcftools sort --output-type z tmp.vcf.gz > ${LOCAL_FILE}.region.vcf.gz
-            rm -f tmp.vcf.gz
+            rm -f tmp.vcf.gz tmp.vcf.gz.tbi
             tabix ${LOCAL_FILE}.region.vcf.gz
             echo ${LOCAL_FILE}.region.vcf.gz >> list.txt
         done < ~{vcf_addresses}
