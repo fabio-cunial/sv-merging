@@ -44,7 +44,7 @@ public class PrintPopulationSVs {
         final String INPUT_FILE_TRUVARI_3 = args[10];
         final String INPUT_FILE_TRUVARI_4 = args[11];
         final String INPUT_FILE_SURVIVOR = args[12];
-        final String INPUT_FILE_SVPOP = args[13];  // BED
+        final String INPUT_FILE_SVPOP = args[13].equalsIgnoreCase("null")?null:args[13];  // BED
         final String OUTPUT_FILE = args[14];
         
         final boolean ONLY_PASS = true;
@@ -66,7 +66,7 @@ public class PrintPopulationSVs {
         drawVCF(2,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
+        if (INPUT_FILE_SVPOP!=null) drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
         drawVCF(6,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         maxRows = new int[histogram.length];
         for (i=0; i<histogram.length; i++) {
@@ -118,11 +118,13 @@ public class PrintPopulationSVs {
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
-        System.err.println("Printing: svpop");
-        drawBED(-1,INPUT_FILE_SURVIVOR,CHR,FROM_POS,TO_POS,y,y+maxRows[5]-1);
-        y+=maxRows[5];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
+        if (INPUT_FILE_SVPOP!=null) {
+            System.err.println("Printing: svpop");
+            drawBED(-1,INPUT_FILE_SURVIVOR,CHR,FROM_POS,TO_POS,y,y+maxRows[5]-1);
+            y+=maxRows[5];
+            for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+            y++;
+        }
         
         System.err.println("Printing: RepeatMasker annotations");
         yMax=drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,N_ROWS-1);

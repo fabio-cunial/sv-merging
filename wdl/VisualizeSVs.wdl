@@ -69,6 +69,7 @@ task VisualizeSVsImpl {
         ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE}) \
             merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf \
             survivor.vcf \
+            null \
             ${OUTPUT_FILE}
         while : ; do
             TEST=$(gsutil -m ${GSUTIL_UPLOAD_THRESHOLD} cp ${OUTPUT_FILE} ~{remote_vcf_dir} && echo 0 || echo 1)
