@@ -181,8 +181,9 @@ task GetVCFsImpl {
             
             i=0
             while read VCF_FILE; do
+                ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${VCF_FILE%.vcf.gz}/all/all/bed/sv_ins.bed.gz
                 if [ $i -eq 0]; then
-                    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${VCF_FILE%.vcf.gz}/all/all/bed/sv_ins.bed.gz
+                    tree
                 fi
                 i=1
             done < list.txt
