@@ -66,7 +66,14 @@ task VisualizeSVsImpl {
         OUTPUT_FILE="mergedSVs_~{chr}_~{pos_from}_~{pos_to}.png"
         REPEAT_MASKER_FILE="hg38.sorted.fa.out.cleaned.orderedByChromosome"
         TRF_FILE="grch38_noalt-human_GRCh38_no_alt_analysis_set.trf.bed.orderedByChromosome"
-        ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs ~{chr} ~{pos_from} ~{pos_to} ${REPEAT_MASKER_FILE} $(wc -l < ${REPEAT_MASKER_FILE}) ${TRF_FILE} $(wc -l ${TRF_FILE}) \
+        ${TIME_COMMAND} java -cp ~{docker_dir} -Xmx~{ram_gb_effective}G PrintPopulationSVs \
+            ~{chr} \
+            ~{pos_from} \
+            ~{pos_to} \
+            ${REPEAT_MASKER_FILE} \
+            $(wc -l < ${REPEAT_MASKER_FILE}) \
+            ${TRF_FILE} \
+            $(wc -l < ${TRF_FILE}) \
             merged.1.vcf merged.2.vcf merged.3.vcf merged.4.vcf merged.5.vcf \
             survivor.vcf \
             null \
