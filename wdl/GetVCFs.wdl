@@ -141,7 +141,7 @@ task GetVCFsImpl {
             rm -f survivor.vcf
         fi
         
-        # svpop. Parameters are set to truvari's defaults.
+        # svpop. Parameters are set to approximate truvari's defaults.
         TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             rm -rf config/; mkdir config/
@@ -169,9 +169,9 @@ task GetVCFsImpl {
             echo "\"sourcename\": \"sniffles2\"," >> config/config.json
             echo "\"sourcetype\": \"sniffles\"," >> config/config.json
             echo "\"merge\": \"nr::szro(szro=0.7,dist=500,match(score=0.7,limit=4000,ksize=9))\"," >> config/config.json
-            echo "}," >> config/config.json
             echo "\"name\": \"myMerge\"," >> config/config.json
             echo "\"description\": \"myMerge\"" >> config/config.json
+            echo "}," >> config/config.json
             echo "}" >> config/config.json
             # end of config file
             echo "}" >> config/config.json

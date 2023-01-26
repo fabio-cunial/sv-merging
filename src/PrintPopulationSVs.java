@@ -44,7 +44,8 @@ public class PrintPopulationSVs {
         final String INPUT_FILE_TRUVARI_3 = args[10];
         final String INPUT_FILE_TRUVARI_4 = args[11];
         final String INPUT_FILE_SURVIVOR = args[12];
-        final String OUTPUT_FILE = args[13];
+        final String INPUT_FILE_SVPOP = args[13];  // BED
+        final String OUTPUT_FILE = args[14];
         
         final boolean ONLY_PASS = true;
         N_COLUMNS=(TO_POS-FROM_POS)/QUANTUM+1;
@@ -59,13 +60,14 @@ public class PrintPopulationSVs {
         
         
         System.err.println("Estimating number of rows...");
-        histogram = new int[6][N_COLUMNS];
+        histogram = new int[7][N_COLUMNS];
         drawVCF(0,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(2,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawVCF(5,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
+        drawVCF(6,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         maxRows = new int[histogram.length];
         for (i=0; i<histogram.length; i++) {
             maxRows[i]=0;
@@ -111,8 +113,14 @@ public class PrintPopulationSVs {
         y++;
         
         System.err.println("Printing: survivor");
-        drawVCF(-1,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
+        drawVCF(-1,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[4]-1);
         y+=maxRows[4];
+        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        y++;
+        
+        System.err.println("Printing: svpop");
+        drawBED(-1,INPUT_FILE_SURVIVOR,CHR,FROM_POS,TO_POS,y,y+maxRows[5]-1);
+        y+=maxRows[5];
         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
         y++;
         
@@ -129,7 +137,7 @@ public class PrintPopulationSVs {
         y++;
         
         System.err.println("Printing: bcftools merge");
-        yMax=y+maxRows[5]-1;
+        yMax=y+maxRows[6]-1;
         if (yMax>N_ROWS-1) yMax=N_ROWS-1;
         drawVCF(-1,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,y,yMax);
         
@@ -179,10 +187,12 @@ public class PrintPopulationSVs {
     }
     
     
-    
-    
-    
-    private static final int drawBED(int fileID, String path, String chr, boolean onlyPass, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
+    /**
+     * @param path the file is assumed to have no header and rows in the 
+     * following format: CHROM, POS, END, ID, SVTYPE, SVLEN. All the SVs in the
+     * file are assumed to have passed the filters (FILTER=PASS in a VCF).
+     */
+    private static final int drawBED(int fileID, String path, String chr, int frameFromX, int frameToX, int frameFromY, int frameToY) throws IOException {
         boolean sameChromosome;
         int x, y, y0, yMax, yPrime;
         int type, length, color, position;
@@ -193,10 +203,6 @@ public class PrintPopulationSVs {
         br = new BufferedReader(new FileReader(path));
         str=br.readLine(); yMax=-1;
         while (str!=null) {
-            if (str.charAt(0)==COMMENT) {
-                str=br.readLine();
-                continue;
-            }
             tokens=str.split("\t");
             position=Integer.parseInt(tokens[1]);
             sameChromosome=tokens[0].equalsIgnoreCase(chr);
@@ -205,14 +211,10 @@ public class PrintPopulationSVs {
                 continue;
             }
             if (sameChromosome && position>frameToX) break;
-			if (onlyPass && !tokens[6].equalsIgnoreCase(PASS_STR)) {
-				str=br.readLine();
-				continue;
-			}
-            type=getType_infoField(getField(tokens[7],SVTYPE_STR));     
+            type=getType_infoField(tokens[4]);     
             if (type!=TYPE_INSERTION && type!=TYPE_BREAKEND) {
                 color=TYPE_COLORS[type-1];
-                length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
+                length=Integer.parseInt(tokens[5]);
                 if (length<0) length=-length;
                 yPrime=drawSV(fileID,frameFromX,frameFromY,frameToY,position,position+length-1,color,HEIGHT_PIXELS_FILE);
                 if (yPrime>yMax) yMax=yPrime;
@@ -222,11 +224,6 @@ public class PrintPopulationSVs {
         br.close();
         return yMax;
     }
-    
-    
-    
-    
-    
     
 
     /**
