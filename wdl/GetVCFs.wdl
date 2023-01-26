@@ -130,6 +130,7 @@ task GetVCFsImpl {
         
         # svpop. Parameters are set to approximate truvari's defaults.
         TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
+        TEST=0
         if [ ${TEST} -eq 1 ]; then
             echo -e "chr22\t50818468\t2864531079\t70\t71" > chr22only.fai
             rm -rf config/; mkdir config/
@@ -170,9 +171,10 @@ task GetVCFsImpl {
             echo "}" >> config/config.json
             cat config/config.json
             source activate svpop
-            # INS return error at this line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
+            # INS return error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
             #${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
-            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
+            # DEL returns error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
+            #${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
             conda deactivate
@@ -183,19 +185,31 @@ task GetVCFsImpl {
             uploadVCF svpop.bed.gz " "
         fi
         
-        # survivor. Parameters are set to truvari's defaults. We need to
-        # decompress since survivor does not work on .vcf.gz files.
+        
+        # ----------- Decompressing VCFs for the following tools ---------------
+        touch list_decompressed.txt
+        while read VCF_GZ_FILE; do
+            gunzip ${VCF_GZ_FILE}
+            echo ${VCF_GZ_FILE%.gz} >> list_decompressed.txt
+        done < list.txt
+        
+        # survivor. Parameters are set to truvari's defaults. survivor does not
+        # work on .vcf.gz files.
         TEST=$(gsutil -q stat ~{output_dir}/survivor.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
-            touch list_prime.txt
-            while read VCF_GZ_FILE; do
-                gunzip ${VCF_GZ_FILE}
-                echo ${VCF_GZ_FILE%.gz} >> list_prime.txt
-            done < list.txt
-            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 survivor.vcf
+            ${TIME_COMMAND} SURVIVOR merge list_decompressed.txt 500 1 1 1  0  50 survivor.vcf
             uploadVCF survivor.vcf " "
             rm -f survivor.vcf
         fi
+        
+        # jasmine. Parameters are set to truvari's defaults.
+        TEST=$(gsutil -q stat ~{output_dir}/jasmine.vcf && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            ${TIME_COMMAND} jasmine threads=${N_THREADS} max_dist=500 min_seq_id=0.7 --use_edit_dist --clique_merging file_list=list_decompressed.txt out_file=jasmine.vcf
+            uploadVCF jasmine.vcf " "
+            rm -f jasmine.vcf
+        fi
+        
     >>>
     output {
     }
