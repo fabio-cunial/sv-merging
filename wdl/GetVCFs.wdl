@@ -157,9 +157,9 @@ task GetVCFsImpl {
             echo "\"samplelist\": {" >> config/config.json
             echo "\"mySamples\": [" >> config/config.json
             read VCF_FILE < list.txt
-            echo -n "\"${VCF_FILE%.vcf}\"" >> config/config.json
+            echo -n "\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
             while read VCF_FILE; do
-                echo -en ",\n\"${VCF_FILE%.vcf}\"" >> config/config.json
+                echo -en ",\n\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
             done < list.txt
             echo -e "\n]" >> config/config.json
             echo "}," >> config/config.json
