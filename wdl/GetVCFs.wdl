@@ -168,7 +168,8 @@ task GetVCFsImpl {
             echo "}" >> config/config.json
             cat config/config.json
             source activate svpop
-            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
+            # INS return error at this line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
+            #${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
