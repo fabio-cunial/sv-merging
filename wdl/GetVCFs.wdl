@@ -128,26 +128,13 @@ task GetVCFsImpl {
             rm -f merged.5.vcf collapsed.5.vcf
         fi
         
-        # survivor. Parameters are set to truvari's defaults.
-        TEST=$(gsutil -q stat ~{output_dir}/survivor.vcf && echo 0 || echo 1)
-        if [ ${TEST} -eq 1 ]; then
-            touch list_prime.txt
-            while read VCF_GZ_FILE; do
-                gunzip ${VCF_GZ_FILE}
-                echo ${VCF_GZ_FILE%.gz} >> list_prime.txt
-            done < list.txt
-            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 survivor.vcf
-            uploadVCF survivor.vcf " "
-            rm -f survivor.vcf
-        fi
-        
         # svpop. Parameters are set to approximate truvari's defaults.
         TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             rm -rf config/; mkdir config/
             touch config/samples.tsv
             echo -e "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
-            echo -e "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/{sample}.vcf\t2\t\t"  >> config/samples.tsv
+            echo -e "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/{sample}.vcf.gz\t2\t\t"  >> config/samples.tsv
             cat config/samples.tsv
             touch config/config.json
             echo "{" >> config/config.json
@@ -179,10 +166,13 @@ task GetVCFsImpl {
             source activate svpop
             
             
-            while read VCF_FILE; do
-                snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${VCF_FILE%.vcf.gz}/all/all/bed/sv_ins.bed.gz && echo 0 || tree
-            done < list.txt
-            tree
+            #while read VCF_FILE; do
+            #    snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${VCF_FILE%.vcf.gz}/all/all/bed/sv_ins.bed.gz && echo 0 || tree
+            #done < list.txt
+            snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/1000151.sniffles2.region/all/all/bed/sv_ins.bed.gz && tree || tree
+            
+            
+            
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
@@ -197,6 +187,19 @@ task GetVCFsImpl {
         
         
         
+        # survivor. Parameters are set to truvari's defaults. We need to
+        # decompress since survivor does not work on .vcf.gz files.
+        TEST=$(gsutil -q stat ~{output_dir}/survivor.vcf && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            touch list_prime.txt
+            while read VCF_GZ_FILE; do
+                gunzip ${VCF_GZ_FILE}
+                echo ${VCF_GZ_FILE%.gz} >> list_prime.txt
+            done < list.txt
+            ${TIME_COMMAND} SURVIVOR merge list_prime.txt 500 1 1 1  0  50 survivor.vcf
+            uploadVCF survivor.vcf " "
+            rm -f survivor.vcf
+        fi
         
     >>>
     output {
