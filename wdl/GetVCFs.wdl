@@ -166,13 +166,13 @@ task GetVCFsImpl {
             source activate svpop
             
             
-            #while read VCF_FILE; do
-            #    snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${VCF_FILE%.vcf.gz}/all/all/bed/sv_ins.bed.gz && echo 0 || tree
-            #done < list.txt
-            snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/1000151.sniffles2.region/all/all/bed/sv_ins.bed.gz && tree || tree
-            
-            
-            
+            while read VCF_FILE; do
+                PREFIX=${VCF_FILE%.vcf.gz}
+                ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sniffles/sniffles2/${PREFIX}/all/all/bed/sv_ins.bed.gz
+                ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sniffles/sniffles2/${PREFIX}/all/all/bed/sv_del.bed.gz
+                ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sniffles/sniffles2/${PREFIX}/all/all/bed/sv_inv.bed.gz
+                ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sniffles/sniffles2/${PREFIX}/all/all/bed/sv_dup.bed.gz
+            done < list.txt
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
