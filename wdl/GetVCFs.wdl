@@ -131,6 +131,7 @@ task GetVCFsImpl {
         # svpop. Parameters are set to approximate truvari's defaults.
         TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
+            echo -e "chr22\t50818468\t2864531079\t70\t71" > chr22only.fai
             rm -rf config/; mkdir config/
             touch config/samples.tsv
             echo -e "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
@@ -139,6 +140,7 @@ task GetVCFsImpl {
             touch config/config.json
             echo "{" >> config/config.json
             echo "\"reference\": \"~{reference_fa}\"," >> config/config.json
+            echo "\"reference_fai\": \"chr22only.fai\"," >> config/config.json
             echo "\"ucsc_ref_name\": \"hg38\"," >> config/config.json
             # samplelist section
             echo "\"samplelist\": {" >> config/config.json
