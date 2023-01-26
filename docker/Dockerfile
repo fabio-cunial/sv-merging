@@ -11,7 +11,7 @@ ARG samtools_version=1.16.1
 ARG bcftools_version=1.16
 ARG truvari_version=3.5.0
 ARG survivor_version=1.0.7
-ARG jasmine_version=1.0.2
+ARG jasmine_version=1.1.5
 # ------------------------------------------------------------------------------
 
 
@@ -110,11 +110,20 @@ SHELL ["conda", "run", "-n", "svpop", "/bin/bash", "-c"]
 RUN echo "conda init bash" > ~/.bashrc
 RUN git clone --recursive https://github.com/EichlerLab/svpop.git
 
+
 # JASMINE
-RUN conda config --add channels bioconda \
-    && conda config --add channels conda-forge \
-    && conda install jasminesv=${jasmine_version} \
-    && jasmine
+COPY ./jasmine_environment.yml .
+RUN conda env create -f ./jasmine_environment.yml \
+    && conda clean --packages --tempfiles --logfiles
+SHELL ["conda", "run", "-n", "jasmine", "/bin/bash", "-c"]
+
+
+
+# # JASMINE
+# RUN conda config --add channels bioconda \
+#     && conda config --add channels conda-forge \
+#     && conda install jasminesv=${jasmine_version} \
+#     && jasmine
 
 COPY *.java .
 RUN javac *.java

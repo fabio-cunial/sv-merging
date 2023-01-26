@@ -1,0 +1,13 @@
+name: svpop
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - biopython=1.78
+  - numpy=1.22.3
+  - pandas=1.5.0
+  - pysam=0.19.1      
+  - snakemake=7.18.1
+  - intervaltree=3.1.0
+  - matplotlib=3.5.1
+  - matplotlib-venn
