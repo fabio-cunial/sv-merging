@@ -164,18 +164,6 @@ task GetVCFsImpl {
             echo "}" >> config/config.json
             cat config/config.json
             source activate svpop
-            
-            
-            #while read VCF_FILE; do
-            #    PREFIX=${VCF_FILE%.vcf.gz}
-            #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${PREFIX}/all/all/bed/sv_ins.bed.gz
-            #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${PREFIX}/all/all/bed/sv_del.bed.gz
-            #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${PREFIX}/all/all/bed/sv_inv.bed.gz
-            #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/${PREFIX}/all/all/bed/sv_dup.bed.gz
-            #done < list.txt
-            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/caller/sniffles2/1000151.sniffles2.region/all/all/bed/sv_ins.bed.gz
-            
-            
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
             ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
@@ -187,8 +175,6 @@ task GetVCFsImpl {
                  results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz | gzip > svpop.bed.gz
             uploadVCF svpop.bed.gz " "
         fi
-        
-        
         
         # survivor. Parameters are set to truvari's defaults. We need to
         # decompress since survivor does not work on .vcf.gz files.
@@ -203,7 +189,6 @@ task GetVCFsImpl {
             uploadVCF survivor.vcf " "
             rm -f survivor.vcf
         fi
-        
     >>>
     output {
     }
