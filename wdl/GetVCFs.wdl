@@ -145,11 +145,12 @@ task GetVCFsImpl {
             echo "\"mySamples\": [" >> config/config.json
             i=0
             while read VCF_FILE; do
-            if [ $i -eq 0 ]; then 
-                echo -n "\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
-                i=1
-            else
-                echo -en ",\n\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
+                if [ $i -eq 0 ]; then 
+                    echo -n "\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
+                    i=1
+                else
+                    echo -en ",\n\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
+                fi
             done < list.txt
             echo -e "\n]" >> config/config.json
             echo "}," >> config/config.json
