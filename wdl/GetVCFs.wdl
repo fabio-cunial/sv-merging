@@ -203,11 +203,12 @@ task GetVCFsImpl {
         fi
         
         # jasmine. Parameters are set to truvari's defaults, except:
-        # --clique_merging removed because too slow.
+        # --clique_merging removed because too slow?
+        # min_seq_id=0.7 --use_edit_dist  too slow?
         TEST=$(gsutil -q stat ~{output_dir}/jasmine.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             source activate jasmine
-            ${TIME_COMMAND} jasmine threads=${N_THREADS} max_dist=500 min_seq_id=0.7 --use_edit_dist file_list=list_decompressed.txt out_file=jasmine.vcf
+            ${TIME_COMMAND} jasmine threads=${N_THREADS} max_dist=500 file_list=list_decompressed.txt out_file=jasmine.vcf
             conda deactivate
             uploadVCF jasmine.vcf " "
             rm -f jasmine.vcf
