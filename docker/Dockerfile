@@ -12,6 +12,7 @@ ARG bcftools_version=1.16
 ARG truvari_version=3.5.0
 ARG survivor_version=1.0.7
 ARG jasmine_version=1.1.5
+ARG svtools_version=0.5.1
 # ------------------------------------------------------------------------------
 
 
@@ -23,8 +24,15 @@ RUN apt-get -qqy update --fix-missing \
         liblzma-dev \
         libbz2-dev \
         libdeflate-dev \
+        libreadline-dev \
+        libsqlite3-dev \
         libssl-dev \
         libcurl4-openssl-dev \
+        libncurses5-dev \
+        libncursesw5-dev \
+        libffi-dev \
+        liblzma-dev \
+        libopenblas-dev \
         apt-transport-https \
         ca-certificates \
         tree \
@@ -40,11 +48,16 @@ RUN apt-get -qqy update --fix-missing \
         cmake \
         gcc \
         g++ \
+        gfortran \
+        build-essential \
         default-jdk \
         default-jre \
         git \
         bc \
-        python3-pip
+        python3-pip \
+        xz-utils \
+        tk-dev
+        
 
 # GSUTIL
 RUN pip3 uninstall -y crcmod && pip3 install --no-cache-dir -U crcmod
@@ -110,21 +123,26 @@ SHELL ["conda", "run", "-n", "svpop", "/bin/bash", "-c"]
 RUN echo "conda init bash" > ~/.bashrc
 RUN git clone --recursive https://github.com/EichlerLab/svpop.git
 
-
 # JASMINE
 COPY ./jasmine_environment.yml .
 RUN conda env create -f ./jasmine_environment.yml \
     && conda clean --packages --tempfiles --logfiles
 SHELL ["conda", "run", "-n", "jasmine", "/bin/bash", "-c"]
-# Adding header to original shell script
+# Adding #!/bin/bash to the original shell script
 COPY ./jasmine /opt/conda/envs/jasmine/bin/jasmine
 
+# SVTOOLS
+# RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv \
+#     && echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc \
+#     && echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc \
+#     && echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+# RUN $HOME/.pyenv/bin/pyenv install 2.7.13 \
+#     && $HOME/.pyenv/bin/pyenv versions
+# RUN $HOME/.pyenv/bin/pyenv global 2.7.13 \
+#     && pip install svtools \
+#     && svtools --version \
+#     && $HOME/.pyenv/bin/pyenv global system
 
-# # JASMINE
-# RUN conda config --add channels bioconda \
-#     && conda config --add channels conda-forge \
-#     && conda install jasminesv=${jasmine_version} \
-#     && jasmine
 
 COPY *.java .
 RUN javac *.java

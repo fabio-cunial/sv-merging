@@ -203,8 +203,8 @@ task GetVCFsImpl {
         fi
         
         # jasmine. Parameters are set to truvari's defaults, except:
-        # --clique_merging removed because too slow?
-        # min_seq_id=0.7 --use_edit_dist  too slow?
+        # --clique_merging: removed because too slow.
+        # min_seq_id=0.7 --use_edit_dist: removed because too slow.
         TEST=$(gsutil -q stat ~{output_dir}/jasmine.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             source activate jasmine
