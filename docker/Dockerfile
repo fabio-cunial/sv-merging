@@ -152,6 +152,8 @@ RUN pip install pysam \
     && rm svimmer.tar.gz \
     && chmod +x ./svimmer-${svimmer_version}/svimmer \
     && ./svimmer-${svimmer_version}/svimmer -h
+COPY svimmer ${work_dir}/svimmer-${svimmer_version}/svimmer
+RUN chmod +x ${work_dir}/svimmer-${svimmer_version}/svimmer
 ENV PATH=${work_dir}/svimmer-${svimmer_version}:${PATH}
 
 

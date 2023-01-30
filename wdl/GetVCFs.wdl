@@ -230,7 +230,7 @@ task GetVCFsImpl {
         # they say it's similar to SURVIVOR.
         TEST=$(gsutil -q stat ~{output_dir}/svimmer.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
-            svimmer --threads ${N_THREADS} --ids --max_distance 500  --output svimmer.vcf list_decompressed.txt chr22
+            ${TIME_COMMAND} svimmer --threads ${N_THREADS} --ids --max_distance 500 --output svimmer.vcf list_decompressed.txt chr22
             uploadVCF svimmer.vcf " "
             rm -f svimmer.vcf
         fi
