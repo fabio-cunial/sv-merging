@@ -94,12 +94,12 @@ task GetVCFsImpl {
             echo ${LOCAL_FILE}.region.vcf.gz >> list.txt
         done < ~{vcf_addresses}
         
-        # bcftools merge
+        # BCFTOOLS MERGE
         #${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output merged.1.vcf.gz
         #uploadVCF "merged.1.vcf.gz" " "
         #tabix merged.1.vcf.gz
         
-        # truvari collapse
+        # TRUVARI COLLAPSE
         TEST=$(gsutil -q stat ~{output_dir}/merged.2.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             ${TIME_COMMAND} truvari collapse --input merged.1.vcf.gz --output merged.2.vcf --collapsed-output collapsed.2.vcf --reference ~{reference_fa} --keep first --passonly
@@ -128,62 +128,69 @@ task GetVCFsImpl {
             rm -f merged.5.vcf collapsed.5.vcf
         fi
         
-        # svpop. Parameters are set to approximate truvari's defaults.
-        TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
-        TEST=0
-        if [ ${TEST} -eq 1 ]; then
-            echo -e "chr22\t50818468\t2864531079\t70\t71" > chr22only.fai
-            rm -rf config/; mkdir config/
-            touch config/samples.tsv
-            echo -e "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
-            echo -e "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/{sample}.vcf.gz\t2\t\t"  >> config/samples.tsv
-            cat config/samples.tsv
-            touch config/config.json
-            echo "{" >> config/config.json
-            echo "\"reference\": \"~{reference_fa}\"," >> config/config.json
-            echo "\"reference_fai\": \"chr22only.fai\"," >> config/config.json
-            echo "\"ucsc_ref_name\": \"hg38\"," >> config/config.json
-            # samplelist section
-            echo "\"samplelist\": {" >> config/config.json
-            echo "\"mySamples\": [" >> config/config.json
-            i=0
-            while read VCF_FILE; do
-                if [ $i -eq 0 ]; then 
-                    echo -n "\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
-                    i=1
-                else
-                    echo -en ",\n\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
-                fi
-            done < list.txt
-            echo -e "\n]" >> config/config.json
-            echo "}," >> config/config.json
-            # sampleset section
-            echo "\"sampleset\": {" >> config/config.json
-            echo "\"myMerge\": {" >> config/config.json
-            echo "\"sourcetype\": \"caller\"," >> config/config.json
-            echo "\"sourcename\": \"sniffles2\"," >> config/config.json
-            echo "\"merge\": \"nr::szro(szro=0.7,dist=500,match(score=0.7,limit=4000,ksize=9))\"," >> config/config.json
-            echo "\"name\": \"myMerge\"," >> config/config.json
-            echo "\"description\": \"myMerge\"" >> config/config.json
-            echo "}," >> config/config.json
-            echo "}" >> config/config.json
-            # end of config file
-            echo "}" >> config/config.json
-            cat config/config.json
-            source activate svpop
-            # INS return error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
-            #${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
-            # DEL returns error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
-            #${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
-            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
-            ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
-            conda deactivate
-            zcat results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz \
-                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz \
-                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz \
-                 results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz | gzip > svpop.bed.gz
-            uploadVCF svpop.bed.gz " "
-        fi
+        # SVPOP. Parameters are set to approximate truvari's defaults.
+        #TEST=$(gsutil -q stat ~{output_dir}/svpop.vcf.gz && echo 0 || echo 1)
+        #TEST=0
+        #if [ ${TEST} -eq 1 ]; then
+        #    echo -e "chr22\t50818468\t2864531079\t70\t71" > chr22only.fai
+        #    rm -rf config/; mkdir config/
+        #    touch config/samples.tsv
+        #    echo -e "NAME\tSAMPLE\tTYPE\tDATA\tVERSION\tPARAMS\tCOMMENT" >> config/samples.tsv
+        #    echo -e "sniffles2\tDEFAULT\tsniffles\t~{work_dir}/{sample}.vcf.gz\t2\t\t"  >> config/samples.tsv
+        #    cat config/samples.tsv
+        #    touch config/config.json
+        #    echo "{" >> config/config.json
+        #    echo "\"reference\": \"~{reference_fa}\"," >> config/config.json
+        #    echo "\"reference_fai\": \"chr22only.fai\"," >> config/config.json
+        #    echo "\"ucsc_ref_name\": \"hg38\"," >> config/config.json
+        #    # samplelist section
+        #    echo "\"samplelist\": {" >> config/config.json
+        #    echo "\"mySamples\": [" >> config/config.json
+        #    i=0
+        #    while read VCF_FILE; do
+        #        if [ $i -eq 0 ]; then 
+        #            echo -n "\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
+        #            i=1
+        #        else
+        #            echo -en ",\n\"${VCF_FILE%.vcf.gz}\"" >> config/config.json
+        #        fi
+        #    done < list.txt
+        #    echo -e "\n]" >> config/config.json
+        #    echo "}," >> config/config.json
+        #    # sampleset section
+        #    echo "\"sampleset\": {" >> config/config.json
+        #    echo "\"myMerge\": {" >> config/config.json
+        #    echo "\"sourcetype\": \"caller\"," >> config/config.json
+        #    echo "\"sourcename\": \"sniffles2\"," >> config/config.json
+        #    echo "\"merge\": \"nr::szro(szro=0.7,dist=500,match(score=0.7,limit=4000,ksize=9))\"," >> config/config.json
+        #    echo "\"name\": \"myMerge\"," >> config/config.json
+        #    echo "\"description\": \"myMerge\"" >> config/config.json
+        #    echo "}," >> config/config.json
+        #    echo "}" >> config/config.json
+        #    # end of config file
+        #    echo "}" >> config/config.json
+        #    cat config/config.json
+        #    source activate svpop
+        #    # INS return error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
+        #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz
+        #    # DEL returns error at line: <https://github.com/EichlerLab/svpop/blob/1d62b72187172a7898443c5b1a27f3838621a199/svpoplib/svmerge.py#L822>
+        #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz
+        #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz
+        #    ${TIME_COMMAND} snakemake -s ~{docker_dir}/svpop/Snakefile --cores ${N_THREADS} results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz
+        #    conda deactivate
+        #    zcat results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_ins.bed.gz \
+        #         results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_del.bed.gz \
+        #         results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_inv.bed.gz \
+        #         results/variant/sampleset/myMerge/mySamples/all/all/bed/sv_dup.bed.gz | gzip > svpop.bed.gz
+        #    uploadVCF svpop.bed.gz " "
+        #fi
+        
+        
+        
+        
+        
+        
+        
         
         
         # ----------- Decompressing VCFs for the following tools ---------------
@@ -193,7 +200,7 @@ task GetVCFsImpl {
             echo ${VCF_GZ_FILE%.gz} >> list_decompressed.txt
         done < list.txt
         
-        # survivor. Parameters are set to truvari's defaults. survivor does not
+        # SURVIVOR. Parameters are set to truvari's defaults. survivor does not
         # work on .vcf.gz files.
         TEST=$(gsutil -q stat ~{output_dir}/survivor.vcf && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
@@ -202,7 +209,7 @@ task GetVCFsImpl {
             rm -f survivor.vcf
         fi
         
-        # jasmine. Parameters are set to truvari's defaults, except:
+        # JASMINE. Parameters are set to truvari's defaults, except:
         # --clique_merging: removed because too slow.
         # min_seq_id=0.7 --use_edit_dist: removed because too slow.
         TEST=$(gsutil -q stat ~{output_dir}/jasmine.vcf && echo 0 || echo 1)
@@ -214,6 +221,19 @@ task GetVCFsImpl {
             rm -f jasmine.vcf
         fi
         
+        # SVIMMER. Parameters are set to approximate truvari's defaults, except
+        # that SVIMMER uses an absolute size difference instead of a relative
+        # one.
+        # Remark: according to its paper, "svimmer ignores the samples' genotype
+        # information to reduce compute time and memory, as only SV site
+        # information is needed for GraphTyper’s graph construction." Otherwise
+        # they say it's similar to SURVIVOR.
+        TEST=$(gsutil -q stat ~{output_dir}/svimmer.vcf && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            svimmer --threads ${N_THREADS} --ids --max_distance 500  --output svimmer.vcf list_decompressed.txt chr22
+            uploadVCF svimmer.vcf " "
+            rm -f svimmer.vcf
+        fi
     >>>
     output {
     }

@@ -13,7 +13,7 @@ ARG truvari_version=3.5.0
 ARG survivor_version=1.0.7
 ARG jasmine_version=1.1.5
 ARG svtools_version=0.5.1
-# ARG svimmer_version=0.1
+ARG svimmer_version=0.1
 # ------------------------------------------------------------------------------
 
 
@@ -111,6 +111,7 @@ RUN pip install truvari==${truvari_version} \
 # SURVIVOR
 RUN wget https://github.com/fritzsedlazeck/SURVIVOR/archive/refs/tags/${survivor_version}.tar.gz -O SURVIVOR.tar.gz \
     && tar xzvf SURVIVOR.tar.gz \
+    && rm SURVIVOR.tar.gz \
     && cd SURVIVOR-${survivor_version}/Debug/ \
     && make
 ENV PATH=${work_dir}/SURVIVOR-${survivor_version}/Debug:${PATH}
@@ -145,10 +146,13 @@ COPY ./jasmine /opt/conda/envs/jasmine/bin/jasmine
 #     && $HOME/.pyenv/bin/pyenv global system
 
 # SVIMMER
-# RUN wget https://github.com/DecodeGenetics/svimmer/archive/refs/tags/v${svimmer_version}.tar.gz -O svimmer.tar.gz \
-#     && tar xzvf svimmer.tar.gz
-# ENV PATH=${work_dir}/svimmer
-# RUN python3 svimmer -h
+RUN pip install pysam \
+    && wget https://github.com/DecodeGenetics/svimmer/archive/refs/tags/v${svimmer_version}.tar.gz -O svimmer.tar.gz \
+    && tar xzvf svimmer.tar.gz \
+    && rm svimmer.tar.gz \
+    && chmod +x ./svimmer-${svimmer_version}/svimmer \
+    && ./svimmer-${svimmer_version}/svimmer -h
+ENV PATH=${work_dir}/svimmer-${svimmer_version}:${PATH}
 
 
 COPY *.java .
