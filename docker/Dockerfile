@@ -13,6 +13,7 @@ ARG truvari_version=3.5.0
 ARG survivor_version=1.0.7
 ARG jasmine_version=1.1.5
 ARG svtools_version=0.5.1
+# ARG svimmer_version=0.1
 # ------------------------------------------------------------------------------
 
 
@@ -142,6 +143,12 @@ COPY ./jasmine /opt/conda/envs/jasmine/bin/jasmine
 #     && pip install svtools \
 #     && svtools --version \
 #     && $HOME/.pyenv/bin/pyenv global system
+
+# SVIMMER
+# RUN wget https://github.com/DecodeGenetics/svimmer/archive/refs/tags/v${svimmer_version}.tar.gz -O svimmer.tar.gz \
+#     && tar xzvf svimmer.tar.gz
+# ENV PATH=${work_dir}/svimmer
+# RUN python3 svimmer -h
 
 
 COPY *.java .

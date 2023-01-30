@@ -77,7 +77,10 @@ public class PrintPopulationSVs {
                 if (histogram[i][j]>maxRows[i]) maxRows[i]=histogram[i][j];
             }
         }
-        for (i=0; i<maxRows.length; i++) maxRows[i]*=HEIGHT_PIXELS_FILE+2;
+        for (i=0; i<maxRows.length; i++) {
+            maxRows[i]*=HEIGHT_PIXELS_FILE+2;
+            System.err.println("maxRows["+i+"]="+maxRows[i]);
+        }
         histogram=null;
         N_ROWS=0;
         for (i=0; i<maxRows.length; i++) N_ROWS+=maxRows[i]+1;
