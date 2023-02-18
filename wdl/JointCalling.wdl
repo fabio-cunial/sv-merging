@@ -27,6 +27,7 @@ task JointCallingImpl {
     command <<<
         set -euxo pipefail
         
+        GSUTIL_DELAY_S="600"
         N_SOCKETS="$(lscpu | grep '^Socket(s):' | awk '{print $NF}')"
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
@@ -35,8 +36,17 @@ task JointCallingImpl {
         rm -f list.txt; touch list.txt
         rm -f counts.txt; touch counts.txt
         while read SNF_FILE; do
-            ID=$(basename ${SNF_FILE} -s .snf)
-            echo "${SNF_FILE}\t${ID}" >> list.tsv
+            LOCAL_FILE=$(basename ${SNF_FILE})
+            while : ; do
+                TEST=$(gsutil -m cp ${SNF_FILE} ${LOCAL_FILE} && echo 0 || echo 1)
+                if [ ${TEST} -eq 1 ]; then
+                    echo "Error downloading file <${SNF_FILE}>. Trying again..."
+                    sleep ${GSUTIL_DELAY_S}
+                else
+                    break
+                fi
+            done
+            echo "${LOCAL_FILE}\t${LOCAL_FILE%.snf}" >> list.tsv
         done < ~{snfs}
         head list.tsv
         ${TIME_COMMAND} sniffles --threads ${N_THREADS} --combine-separate-intra True --input list.tsv --vcf joint.vcf
