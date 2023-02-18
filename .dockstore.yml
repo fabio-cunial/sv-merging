@@ -10,3 +10,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/VisualizeSVs.wdl
   testParameterFiles:
+- name: JointCalling
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/JointCalling.wdl
+  testParameterFiles:

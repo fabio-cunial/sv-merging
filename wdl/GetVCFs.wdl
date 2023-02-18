@@ -234,6 +234,17 @@ task GetVCFsImpl {
             uploadVCF svimmer.vcf " "
             rm -f svimmer.vcf
         fi
+        
+        # SVTOOLS
+        TEST=$(gsutil -q stat ~{output_dir}/svtools.vcf && echo 0 || echo 1)
+        if [ ${TEST} -eq 1 ]; then
+            ${TIME_COMMAND} svtools lsort list_decompressed.txt svtools.1.vcf
+            ${TIME_COMMAND} svtools lmerge svtools.1.vcf > svtools.vcf
+            rm -f svtools.1.vcf
+            uploadVCF svtools.vcf " "
+            rm -f svtools.vcf
+        fi
+        
     >>>
     output {
     }
