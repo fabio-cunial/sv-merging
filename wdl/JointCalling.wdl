@@ -37,7 +37,7 @@ task JointCallingImpl {
         while read SNF_FILE; do
             ID=$(basename ${SNF_FILE} -s .snf)
             echo "${SNF_FILE}\t${ID}" >> list.tsv
-        done << ~{snfs}
+        done < ~{snfs}
         head list.tsv
         ${TIME_COMMAND} sniffles --threads ${N_THREADS} --combine-separate-intra True --input list.tsv --vcf joint.vcf
         N_INS=$(grep "SVTYPE=INS" joint.vcf | awk '{ if ($7=="PASS") print $0; }' | wc -l)
