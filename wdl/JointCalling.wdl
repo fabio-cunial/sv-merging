@@ -46,10 +46,10 @@ task JointCallingImpl {
                     break
                 fi
             done
-            echo "${LOCAL_FILE}\t${LOCAL_FILE%.snf}" >> list.tsv
+            echo -e "${LOCAL_FILE}\t${LOCAL_FILE%.sniffles2.snf}" >> list.tsv
         done < ~{snfs}
         head list.tsv
-        ${TIME_COMMAND} sniffles --threads ${N_THREADS} --combine-separate-intra True --input list.tsv --vcf joint.vcf
+        ${TIME_COMMAND} sniffles --threads ${N_THREADS} --combine-separate-intra --input list.tsv --vcf joint.vcf
         N_INS=$(grep "SVTYPE=INS" joint.vcf | awk '{ if ($7=="PASS") print $0; }' | wc -l)
         N_DEL=$(grep "SVTYPE=DEL" joint.vcf | awk '{ if ($7=="PASS") print $0; }' | wc -l)
         echo "${N_INS},${N_DEL}" >> counts.txt
