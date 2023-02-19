@@ -125,24 +125,30 @@ SHELL ["conda", "run", "-n", "svpop", "/bin/bash", "-c"]
 RUN echo "conda init bash" > ~/.bashrc
 RUN git clone --recursive https://github.com/EichlerLab/svpop.git
 
+# JASMINE
+COPY ./jasmine_environment.yml .
+RUN conda env create -f ./jasmine_environment.yml \
+    && conda clean --packages --tempfiles --logfiles
+SHELL ["conda", "run", "-n", "jasmine", "/bin/bash", "-c"]
+# Adding #!/bin/bash to the original shell script
+COPY ./jasmine /opt/conda/envs/jasmine/bin/jasmine
+
+# # PYENV -- SVTOOLS needed 2.7.13
+# RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv \
+#     && echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc \
+#     && echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc \
+#     && echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+# RUN $HOME/.pyenv/bin/pyenv install 3.6.0 \
+#     && $HOME/.pyenv/bin/pyenv versions
+
 # SVIMMER
 RUN pip install pysam \
     && wget https://github.com/DecodeGenetics/svimmer/archive/refs/tags/v${svimmer_version}.tar.gz -O svimmer.tar.gz \
     && tar xzvf svimmer.tar.gz \
     && rm svimmer.tar.gz \
-    && chmod +x ./svimmer-${svimmer_version}/svimmer \
-    && ./svimmer-${svimmer_version}/svimmer -h
-COPY svimmer ${work_dir}/svimmer-${svimmer_version}/svimmer
-RUN chmod +x ${work_dir}/svimmer-${svimmer_version}/svimmer
+    && chmod +x ./svimmer-${svimmer_version}/svimmer
 ENV PATH=${work_dir}/svimmer-${svimmer_version}:${PATH}
-
-# # PYENV -- Was needed by SVTOOLS
-# RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv \
-#     && echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc \
-#     && echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc \
-#     && echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-# RUN $HOME/.pyenv/bin/pyenv install 2.7.13 \
-#     && $HOME/.pyenv/bin/pyenv versions
+RUN svimmer -h
 
 # # SVTOOLS -- I'm unable to install it.
 # ARG svtools_version=0.5.1
@@ -156,13 +162,7 @@ ENV PATH=${work_dir}/svimmer-${svimmer_version}:${PATH}
 #     && svtools --version \
 #     && $HOME/.pyenv/bin/pyenv global system
 
-# JASMINE
-COPY ./jasmine_environment.yml .
-RUN conda env create -f ./jasmine_environment.yml \
-    && conda clean --packages --tempfiles --logfiles
-SHELL ["conda", "run", "-n", "jasmine", "/bin/bash", "-c"]
-# Adding #!/bin/bash to the original shell script
-COPY ./jasmine /opt/conda/envs/jasmine/bin/jasmine
-
 # ADDITIONAL FILES
-COPY preprocess_vcf.py ${work_dir}/
+COPY ./preprocess_vcf.py ${work_dir}/
+# Fixed two bugs in SVIMMER
+COPY ./svimmer ${work_dir}/svimmer-${svimmer_version}/svimmer
