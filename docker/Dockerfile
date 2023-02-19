@@ -147,6 +147,8 @@ RUN pip install pysam \
     && tar xzvf svimmer.tar.gz \
     && rm svimmer.tar.gz \
     && chmod +x ./svimmer-${svimmer_version}/svimmer
+# Fixing two bugs in SVIMMER
+COPY ./svimmer ${work_dir}/svimmer-${svimmer_version}/svimmer
 ENV PATH=${work_dir}/svimmer-${svimmer_version}:${PATH}
 RUN svimmer -h
 
@@ -164,5 +166,3 @@ RUN svimmer -h
 
 # ADDITIONAL FILES
 COPY ./preprocess_vcf.py ${work_dir}/
-# Fixed two bugs in SVIMMER
-COPY ./svimmer ${work_dir}/svimmer-${svimmer_version}/svimmer
