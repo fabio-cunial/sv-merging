@@ -63,7 +63,7 @@ task JointCallingImpl {
         File counts = "counts.txt"
     }
     runtime {
-        cpu: 4
+        cpu: 32
         memory: "16 GiB"
         disks: "local-disk 100 HDD"
         preemptible: 0
