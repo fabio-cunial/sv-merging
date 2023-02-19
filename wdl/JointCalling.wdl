@@ -4,11 +4,13 @@ version 1.0
 workflow JointCalling {
     input {
         File snfs
+        Int n_files
     }
 
     call JointCallingImpl { 
         input: 
-            snfs = snfs
+            snfs = snfs,
+            n_files = n_files
     }
     
     output {
@@ -19,9 +21,13 @@ workflow JointCalling {
 }
 
 
+# Remark: sniffles2 stores all signature files in RAM, so we should give the
+# procedure an upper bound on the size of a signature file.
+#
 task JointCallingImpl {
     input {
         File snfs
+        Int n_files
     }
 
     command <<<
@@ -35,6 +41,7 @@ task JointCallingImpl {
         
         rm -f list.txt; touch list.txt
         rm -f counts.txt; touch counts.txt
+        i=0
         while read SNF_FILE; do
             LOCAL_FILE=$(basename ${SNF_FILE})
             while : ; do
@@ -47,6 +54,10 @@ task JointCallingImpl {
                 fi
             done
             echo -e "${LOCAL_FILE}\t${LOCAL_FILE%.sniffles2.snf}" >> list.tsv
+            i=$(($i + 1))
+            if [ $i -eq ~{n_files} ]; then
+                break
+            fi
         done < ~{snfs}
         head list.tsv
         ${TIME_COMMAND} sniffles --threads ${N_THREADS} --combine-separate-intra --input list.tsv --vcf joint.vcf
