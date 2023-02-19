@@ -64,7 +64,7 @@ task JointCallingImpl {
     }
     runtime {
         cpu: 32
-        memory: "16 GiB"
+        memory: "128 GiB"
         disks: "local-disk 100 HDD"
         preemptible: 0
         docker: "fcunial/simulation"
