@@ -166,3 +166,5 @@ RUN svimmer -h
 
 # ADDITIONAL FILES
 COPY ./preprocess_vcf.py ${work_dir}/
+COPY *.java ${work_dir}/
+RUN javac ${work_dir}/*.java
