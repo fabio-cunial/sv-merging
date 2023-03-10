@@ -82,7 +82,7 @@ task OverlapStatsImpl {
         tar -czvf report.tar.gz *.matrix
     >>>
     output {
-        File report = "report.tar.gz"
+        File report = work_dir + "/report.tar.gz"
     }
     runtime {
         docker: "fcunial/sv-merging"
