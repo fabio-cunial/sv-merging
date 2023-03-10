@@ -15,3 +15,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/JointCalling.wdl
   testParameterFiles:
+- name: OverlapStats
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/OverlapStats.wdl
+  testParameterFiles:
