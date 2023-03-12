@@ -51,14 +51,16 @@ task OverlapStatsImpl {
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         
-        VCF_GZ_FILE="${ID}.vcf.gz"
-        gsutil cp ~{bucket_dir}/~{merger}/${VCF_GZ_FILE} .
-        gunzip ${VCF_GZ_FILE}
-        if [ ~{genotyper} != "null" ]; then
+        if [ ~{merger} == "joint" ]; then
+            ID="joint900_pass_chr2122_standardized"
+        else if [ ~{genotyper} != "null" ]; then
             ID="regenotyped_~{genotyper}_standardized"
         else
             ID="standardized"
         fi
+        VCF_GZ_FILE="${ID}.vcf.gz"
+        gsutil cp ~{bucket_dir}/~{merger}/${VCF_GZ_FILE} .
+        gunzip ${VCF_GZ_FILE}
         if [ ~{n_samples} -ne -1 ]; then
             seq 0 $(( ~{n_samples}-1 )) > list.txt
             N_ROWS=$(( ~{n_samples}/${N_THREADS} ))
