@@ -37,14 +37,14 @@ public class OverlapStats {
         
         if (SAMPLE_ID_LIST.equalsIgnoreCase("null")) {
             buildHistograms(VCF_FILE,-1,ONLY_PASS);
-            printHistogram(OUTPUT_DIR,21,0,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,1,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,2,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,3,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,0,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,1,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,2,-1,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,3,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,0,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,1,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,2,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,3,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,0,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,1,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,2,0,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,3,0,MAX_OVERLAP);
             bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/gtCounts.txt"));
             bw.write("-1,"+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
             bw.close();
