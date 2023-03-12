@@ -17,6 +17,9 @@ public class OverlapStats {
     private static int n00, n01, n11, nDD, nD0, nD1;
     
     
+    /**
+     * Set $SAMPLE_ID_LIST=null$ to plot overlaps of all SVs in $VCF_FILE$.
+     */
     public static void main(String[] args) throws Exception {
         final String VCF_FILE = args[0];
         final String SAMPLE_ID_LIST = args[1];
@@ -31,30 +34,50 @@ public class OverlapStats {
         
         histogram_chr21 = new int[4][CHR21_LENGTH];
         histogram_chr22 = new int[4][CHR22_LENGTH];
-        br = new BufferedReader(new FileReader(SAMPLE_ID_LIST));
-        str=br.readLine();
-        while (str!=null) {
-            sampleID=Integer.parseInt(str);
-            buildHistograms(VCF_FILE,sampleID,ONLY_PASS);
-            printHistogram(OUTPUT_DIR,21,0,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,1,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,2,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,21,3,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,0,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,1,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,2,sampleID,MAX_OVERLAP);
-            printHistogram(OUTPUT_DIR,22,3,sampleID,MAX_OVERLAP);
-            bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/"+sampleID+"_gtCounts.txt"));
-            bw.write(sampleID+","+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
+        
+        if (SAMPLE_ID_LIST.equalsIgnoreCase("null")) {
+            buildHistograms(VCF_FILE,-1,ONLY_PASS);
+            printHistogram(OUTPUT_DIR,21,0,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,1,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,2,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,21,3,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,0,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,1,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,2,-1,MAX_OVERLAP);
+            printHistogram(OUTPUT_DIR,22,3,-1,MAX_OVERLAP);
+            bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/gtCounts.txt"));
+            bw.write("-1,"+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
             bw.close();
-            str=br.readLine();
         }
-        br.close();
+        else {
+            br = new BufferedReader(new FileReader(SAMPLE_ID_LIST));
+            str=br.readLine();
+            while (str!=null) {
+                sampleID=Integer.parseInt(str);
+                buildHistograms(VCF_FILE,sampleID,ONLY_PASS);
+                printHistogram(OUTPUT_DIR,21,0,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,21,1,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,21,2,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,21,3,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,22,0,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,22,1,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,22,2,sampleID,MAX_OVERLAP);
+                printHistogram(OUTPUT_DIR,22,3,sampleID,MAX_OVERLAP);
+                bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/"+sampleID+"_gtCounts.txt"));
+                bw.write(sampleID+","+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
+                bw.close();
+                str=br.readLine();
+            }
+            br.close();
+        }
     }
     
     
     /**
      * Updates variables $histogram_*$ and $n*$.
+     *
+     * @param sampleID -1 builds the histogram of all SVs, regardless of
+     * genotype.
      */
     private static final void buildHistograms(String path, int sampleID, boolean onlyPass) throws IOException {
         int i, n;
@@ -79,21 +102,24 @@ public class OverlapStats {
 				str=br.readLine();
 				continue;
 			}
-            gt=tokens[9+sampleID].substring(0,3);
-            if (gt.equals("0/0")) n00++;
-            else if (gt.equals("0/1") || gt.equals("1/0")) n01++;
-            else if (gt.equals("1/1")) n11++;
-            else if (gt.equals("./.")) nDD++;
-            else if (gt.equals("./0") || gt.equals("0/.")) nD0++;
-            else if (gt.equals("./1") || gt.equals("1/.")) nD1++;
-            row=svType2Row(getField(tokens[7],SVTYPE_STR));     
+            if (sampleID>=0) {
+                gt=tokens[9+sampleID].substring(0,3);
+                if (gt.equals("0/0")) n00++;
+                else if (gt.equals("0/1") || gt.equals("1/0")) n01++;
+                else if (gt.equals("1/1")) n11++;
+                else if (gt.equals("./.")) nDD++;
+                else if (gt.equals("./0") || gt.equals("0/.")) nD0++;
+                else if (gt.equals("./1") || gt.equals("1/.")) nD1++;
+            }
+            row=svType2Row(getField(tokens[7],SVTYPE_STR));
             if (row==-1) {
 				str=br.readLine();
 				continue;
             }
             length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
             if (length<0) length=-length;
-            n=(tokens[9+sampleID].charAt(0)=='1'?1:0)+(tokens[9+sampleID].charAt(2)=='1'?1:0);
+            if (sampleID>=0) n=(tokens[9+sampleID].charAt(0)=='1'?1:0)+(tokens[9+sampleID].charAt(2)=='1'?1:0);
+            else n=1;
             if (n!=0) {
                 to=position+length-1;
                 if (tokens[0].equals("chr21")) {

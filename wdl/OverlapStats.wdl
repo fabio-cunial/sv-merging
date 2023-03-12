@@ -51,21 +51,26 @@ task OverlapStatsImpl {
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         
-        seq 0 $(( ~{n_samples}-1 )) > list.txt
-        N_ROWS=$(( ~{n_samples}/${N_THREADS} ))
-        split -d -l ${N_ROWS} list.txt chunk-
-        if [ ~{genotyper} != "null" ]; then
-            ID="regenotyped_~{genotyper}_standardized"
-        else
-            ID="standardized"
-        fi    
         VCF_GZ_FILE="${ID}.vcf.gz"
         gsutil cp ~{bucket_dir}/~{merger}/${VCF_GZ_FILE} .
         gunzip ${VCF_GZ_FILE}
-        for SAMPLES_FILE in $(ls chunk-*); do
-            java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf ${SAMPLES_FILE} 1 . ~{max_overlap} &
-        done
-        wait
+        
+        if [ ~{n_samples} -ne -1 ]; then
+            seq 0 $(( ~{n_samples}-1 )) > list.txt
+            N_ROWS=$(( ~{n_samples}/${N_THREADS} ))
+            split -d -l ${N_ROWS} list.txt chunk-
+            if [ ~{genotyper} != "null" ]; then
+                ID="regenotyped_~{genotyper}_standardized"
+            else
+                ID="standardized"
+            fi
+            for SAMPLES_FILE in $(ls chunk-*); do
+                java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf ${SAMPLES_FILE} 1 . ~{max_overlap} &
+            done
+            wait
+        else
+            java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf null 1 . ~{max_overlap}
+        fi
         if [ ~{genotyper} != "null" ]; then
             INFIX="_~{genotyper}"
         else
