@@ -9,8 +9,8 @@ workflow OverlapStats {
         String genotyper
         Int n_samples
         Int max_overlap
-        String repeat_masker_file
-        String trf_file
+        File repeat_masker_file
+        File trf_file
     }
     parameter_meta {
     }
@@ -37,8 +37,8 @@ task OverlapStatsImpl {
         String genotyper
         Int n_samples
         Int max_overlap
-        String repeat_masker_file
-        String trf_file
+        File repeat_masker_file
+        File trf_file
     }
     parameter_meta {
         genotyper: "null: no regenotyping."
