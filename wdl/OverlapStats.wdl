@@ -89,7 +89,13 @@ task OverlapStatsImpl {
         cat *_chr22_del_histogram.txt > ~{merger}${INFIX}_chr22_del_histogram.matrix
         cat *_chr22_dup_histogram.txt > ~{merger}${INFIX}_chr22_dup_histogram.matrix
         cat *_chr22_inv_histogram.txt > ~{merger}${INFIX}_chr22_inv_histogram.matrix
-        TEST=$(cat *_gtCounts.txt > ~{merger}${INFIX}_gtCounts.matrix && echo 0 || echo 1)
+        cat *_gtCounts.txt > ~{merger}${INFIX}_gtCounts.matrix && echo 0 || echo 1)
+        cat *_chr21_del_repeat_histogram.txt > ~{merger}${INFIX}_chr21_del_repeat_histogram.matrix && echo 0 || echo 1
+        cat *_chr21_dup_repeat_histogram.txt > ~{merger}${INFIX}_chr21_dup_repeat_histogram.matrix && echo 0 || echo 1
+        cat *_chr21_inv_repeat_histogram.txt > ~{merger}${INFIX}_chr21_inv_repeat_histogram.matrix && echo 0 || echo 1
+        cat *_chr22_del_repeat_histogram.txt > ~{merger}${INFIX}_chr22_del_repeat_histogram.matrix && echo 0 || echo 1
+        cat *_chr22_dup_repeat_histogram.txt > ~{merger}${INFIX}_chr22_dup_repeat_histogram.matrix && echo 0 || echo 1
+        cat *_chr22_inv_repeat_histogram.txt > ~{merger}${INFIX}_chr22_inv_repeat_histogram.matrix && echo 0 || echo 1
         rm -f *.txt ${ID}.vcf
         tar -czvf report.tar.gz *.matrix
     >>>
