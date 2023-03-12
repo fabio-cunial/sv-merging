@@ -53,7 +53,7 @@ task OverlapStatsImpl {
         
         if [ ~{merger} == "joint" ]; then
             ID="joint900_pass_chr2122_standardized"
-        else if [ ~{genotyper} != "null" ]; then
+        elif [ ~{genotyper} != "null" ]; then
             ID="regenotyped_~{genotyper}_standardized"
         else
             ID="standardized"
