@@ -266,7 +266,9 @@ public class OverlapStats {
                 if (end>=CHR22_LENGTH) end=CHR22_LENGTH-1;
                 histogram=isSatellite?satellite_histogram_chr22:repeat_histogram_chr22;
             }
-            for (i=start; i<=end; i++) histogram[i]=true;
+            if (histogram!=null) {
+                for (i=start; i<=end; i++) histogram[i]=true;
+            }
 			str=br.readLine();
 		}
 		br.close();
@@ -297,7 +299,9 @@ public class OverlapStats {
                 if (end>=CHR22_LENGTH) end=CHR22_LENGTH-1;
                 histogram=satellite_histogram_chr22;
             }
-            for (i=start; i<=end; i++) histogram[i]=true;
+            if (histogram!=null) {
+                for (i=start; i<=end; i++) histogram[i]=true;
+            }
 			str=br.readLine();
 		}
 		br.close();
