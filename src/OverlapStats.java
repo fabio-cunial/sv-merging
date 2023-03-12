@@ -43,7 +43,7 @@ public class OverlapStats {
         histogram_chr21 = new int[4][CHR21_LENGTH];
         histogram_chr22 = new int[4][CHR22_LENGTH];
         satellite_histogram_chr21 = new boolean[CHR21_LENGTH];
-        satellite_histogram_chr21 = new boolean[CHR22_LENGTH];
+        satellite_histogram_chr22 = new boolean[CHR22_LENGTH];
         repeat_histogram_chr21 = new boolean[CHR21_LENGTH];
         repeat_histogram_chr22 = new boolean[CHR22_LENGTH];
         buildRepeatMaskerHistogram(REPEAT_MASKER_FILE);
@@ -345,9 +345,9 @@ public class OverlapStats {
             case 3: svType="ins"; break;
         }
         bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_chr"+chr+"_"+svType+"_repeat_histogram.txt"));
-        bw.write(sampleID+",");
         for (i=0; i<3; i++) {
             for (j=1; j<=maxOverlap; j++) bw.write(overlapHistogram[i][j]+",");
+            bw.newLine();
         }
         bw.newLine(); bw.close();
     }
