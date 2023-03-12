@@ -83,7 +83,7 @@ task OverlapStatsImpl {
         cat *_chr22_del_histogram.txt > ~{merger}${INFIX}_chr22_del_histogram.matrix
         cat *_chr22_dup_histogram.txt > ~{merger}${INFIX}_chr22_dup_histogram.matrix
         cat *_chr22_inv_histogram.txt > ~{merger}${INFIX}_chr22_inv_histogram.matrix
-        cat *_gtCounts.txt > ~{merger}${INFIX}_gtCounts.matrix
+        TEST=$(cat *_gtCounts.txt > ~{merger}${INFIX}_gtCounts.matrix && echo 0 || echo 1)
         rm -f *.txt ${ID}.vcf
         tar -czvf report.tar.gz *.matrix
     >>>
