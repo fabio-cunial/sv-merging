@@ -54,16 +54,15 @@ task OverlapStatsImpl {
         VCF_GZ_FILE="${ID}.vcf.gz"
         gsutil cp ~{bucket_dir}/~{merger}/${VCF_GZ_FILE} .
         gunzip ${VCF_GZ_FILE}
-        
+        if [ ~{genotyper} != "null" ]; then
+            ID="regenotyped_~{genotyper}_standardized"
+        else
+            ID="standardized"
+        fi
         if [ ~{n_samples} -ne -1 ]; then
             seq 0 $(( ~{n_samples}-1 )) > list.txt
             N_ROWS=$(( ~{n_samples}/${N_THREADS} ))
             split -d -l ${N_ROWS} list.txt chunk-
-            if [ ~{genotyper} != "null" ]; then
-                ID="regenotyped_~{genotyper}_standardized"
-            else
-                ID="standardized"
-            fi
             for SAMPLES_FILE in $(ls chunk-*); do
                 java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf ${SAMPLES_FILE} 1 . ~{max_overlap} &
             done
