@@ -76,7 +76,7 @@ task OverlapStatsImpl {
             done
             wait
         else
-            java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf null 1 . ~{max_overlap}
+            java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf null 1 . ~{max_overlap} ~{repeat_masker_file} ~{trf_file}
         fi
         if [ ~{genotyper} != "null" ]; then
             INFIX="_~{genotyper}"
