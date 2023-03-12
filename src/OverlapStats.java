@@ -16,6 +16,12 @@ public class OverlapStats {
     private static int[][] histogram_chr21, histogram_chr22;
     private static int n00, n01, n11, nDD, nD0, nD1;
     
+    /**
+     * Columns: positions on the chromosome.
+     */
+    private static boolean[] satellite_histogram_chr21, satellite_histogram_chr22;
+    private static boolean[] repeat_histogram_chr21, repeat_histogram_chr22;
+    
     
     /**
      * Set $SAMPLE_ID_LIST=null$ to plot overlaps of all SVs in $VCF_FILE$.
@@ -26,6 +32,8 @@ public class OverlapStats {
         final boolean ONLY_PASS = Integer.parseInt(args[2])==1;
         final String OUTPUT_DIR = args[3];
         final int MAX_OVERLAP = Integer.parseInt(args[4]);
+        final String REPEAT_MASKER_FILE = args[5];
+        final String TRF_FILE = args[6];
         
         int sampleID;
         String str;
@@ -34,6 +42,12 @@ public class OverlapStats {
         
         histogram_chr21 = new int[4][CHR21_LENGTH];
         histogram_chr22 = new int[4][CHR22_LENGTH];
+        satellite_histogram_chr21 = new boolean[CHR21_LENGTH];
+        satellite_histogram_chr21 = new boolean[CHR22_LENGTH];
+        repeat_histogram_chr21 = new boolean[CHR21_LENGTH];
+        repeat_histogram_chr22 = new boolean[CHR22_LENGTH];
+        buildRepeatMaskerHistogram(REPEAT_MASKER_FILE);
+        buildTrfHistogram(TRF_FILE);
         
         if (SAMPLE_ID_LIST.equalsIgnoreCase("null")) {
             buildHistograms(VCF_FILE,-1,ONLY_PASS);
@@ -48,6 +62,14 @@ public class OverlapStats {
             bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/gtCounts.txt"));
             bw.write("-1,"+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
             bw.close();
+            printRepeatHistogram(OUTPUT_DIR,21,0,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,21,1,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,21,2,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,21,3,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,22,0,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,22,1,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,22,2,0,MAX_OVERLAP);
+            printRepeatHistogram(OUTPUT_DIR,22,3,0,MAX_OVERLAP);
         }
         else {
             br = new BufferedReader(new FileReader(SAMPLE_ID_LIST));
@@ -206,6 +228,123 @@ public class OverlapStats {
         bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_chr"+chr+"_"+svType+"_histogram.txt"));
         bw.write(sampleID+",");
         for (i=1; i<=maxOverlap; i++) bw.write((overlapHistogram[i]/sum)+",");
+        bw.newLine(); bw.close();
+    }
+
+    
+	/**
+	 * @param path assumed to be a cleaned version of the original RepeatMasker 
+	 * file from the UCSC Genome Browser, with runs of spaces replaced by a 
+	 * single comma, without header, and already sorted by contig (according to
+	 * $VCF2gfa.string2contig()$: this is not the lex order) and starting 
+	 * position.
+	 */
+	private static final void buildRepeatMaskerHistogram(String path) throws IOException {
+        boolean isSatellite;
+		int i;
+		int start, end;
+		String str;
+		BufferedReader br;
+        boolean[] histogram;
+		String[] tokens;
+
+		br = new BufferedReader(new FileReader(path));
+		str=br.readLine();
+		while (str!=null) {
+			tokens=str.split(",");
+            start=Integer.parseInt(tokens[5])-1;
+            if (start<0) start=0;
+            end=Integer.parseInt(tokens[6])-1;
+            str=tokens[10].toLowerCase();
+			isSatellite=str.indexOf("satellite")>=0 || str.indexOf("sat")>=0 || str.indexOf("simple")>=0 || str.indexOf("low_complexity")>=0;
+            histogram=null;
+            if (tokens[4].equalsIgnoreCase("chr21")) {
+                if (end>=CHR21_LENGTH) end=CHR21_LENGTH-1;
+                histogram=isSatellite?satellite_histogram_chr21:repeat_histogram_chr21;
+            }
+            else if (tokens[4].equalsIgnoreCase("chr22")) {
+                if (end>=CHR22_LENGTH) end=CHR22_LENGTH-1;
+                histogram=isSatellite?satellite_histogram_chr22:repeat_histogram_chr22;
+            }
+            for (i=start; i<=end; i++) histogram[i]=true;
+			str=br.readLine();
+		}
+		br.close();
+    }
+
+    
+	private static final void buildTrfHistogram(String path) throws IOException {
+		int i;
+		int start, end;
+		String str;
+		BufferedReader br;
+        boolean[] histogram;
+		String[] tokens;
+
+		br = new BufferedReader(new FileReader(path));
+		str=br.readLine();
+		while (str!=null) {
+			tokens=str.split(",");
+            start=Integer.parseInt(tokens[1])-1;
+            if (start<0) start=0;
+            end=Integer.parseInt(tokens[2])-1;
+            histogram=null;
+            if (tokens[0].equalsIgnoreCase("chr21")) {
+                if (end>=CHR21_LENGTH) end=CHR21_LENGTH-1;
+                histogram=satellite_histogram_chr21;
+            }
+            else if (tokens[0].equalsIgnoreCase("chr22")) {
+                if (end>=CHR22_LENGTH) end=CHR22_LENGTH-1;
+                histogram=satellite_histogram_chr22;
+            }
+            for (i=start; i<=end; i++) histogram[i]=true;
+			str=br.readLine();
+		}
+		br.close();
+    }
+    
+    
+    /**
+     * Prints a matrix with 3 rows (no repeat, non-sat repeat, sat repeat) and
+     * with one column for every number of overlapping SVs in $<=maxOverlap$.
+     * Cell $(i,j)$ is the number of chromosome positions of type $i$ that are 
+     * covered by $j$ SVs. 
+     *
+     * @param row a row of $histogram_chr*$, i.e. an SV type (0=DEL, 1=INV,
+     * 2=DUP, 3=INS).
+     */
+    private static final void printRepeatHistogram(String outputDir, int chr, int row, int sampleID, int maxOverlap) throws IOException {
+        int i, j, n;
+        int length;
+        String svType;
+        BufferedWriter bw;
+        int[][] histogram;
+        boolean[] repeat_histogram, satellite_histogram;
+        double[][] overlapHistogram;
+        
+        overlapHistogram = new double[3][maxOverlap+1];
+        if (chr==21) { histogram=histogram_chr21; repeat_histogram=repeat_histogram_chr21; satellite_histogram=satellite_histogram_chr21; length=CHR21_LENGTH; }
+        else if (chr==22) { histogram=histogram_chr22; repeat_histogram=repeat_histogram_chr22; satellite_histogram=satellite_histogram_chr22; length=CHR22_LENGTH; }
+        else { histogram=null; repeat_histogram=null; satellite_histogram=null; length=-1; }
+        for (i=0; i<length; i++) {
+            if (histogram[row][i]==0) continue;
+            n=histogram[row][i]>maxOverlap?maxOverlap:histogram[row][i];
+            if (satellite_histogram[i]) overlapHistogram[2][n]++;
+            else if (repeat_histogram[i]) overlapHistogram[1][n]++;
+            else overlapHistogram[0][n]++;
+        }
+        svType="";
+        switch (row) {
+            case 0: svType="del"; break;
+            case 1: svType="inv"; break;
+            case 2: svType="dup"; break;
+            case 3: svType="ins"; break;
+        }
+        bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_chr"+chr+"_"+svType+"_repeat_histogram.txt"));
+        bw.write(sampleID+",");
+        for (i=0; i<3; i++) {
+            for (j=1; j<=maxOverlap; j++) bw.write(overlapHistogram[i][j]+",");
+        }
         bw.newLine(); bw.close();
     }
     

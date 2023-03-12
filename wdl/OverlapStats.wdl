@@ -9,6 +9,8 @@ workflow OverlapStats {
         String genotyper
         Int n_samples
         Int max_overlap
+        String repeat_masker_file
+        String trf_file
     }
     parameter_meta {
     }
@@ -18,7 +20,9 @@ workflow OverlapStats {
             merger = merger,
             genotyper = genotyper,
             n_samples = n_samples,
-            max_overlap = max_overlap
+            max_overlap = max_overlap,
+            repeat_masker_file = repeat_masker_file,
+            trf_file = trf_file
     }
     output {
         File report = OverlapStatsImpl.report
@@ -33,6 +37,8 @@ task OverlapStatsImpl {
         String genotyper
         Int n_samples
         Int max_overlap
+        String repeat_masker_file
+        String trf_file
     }
     parameter_meta {
         genotyper: "null: no regenotyping."
@@ -66,7 +72,7 @@ task OverlapStatsImpl {
             N_ROWS=$(( ~{n_samples}/${N_THREADS} ))
             split -d -l ${N_ROWS} list.txt chunk-
             for SAMPLES_FILE in $(ls chunk-*); do
-                java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf ${SAMPLES_FILE} 1 . ~{max_overlap} &
+                java -Xmx2g -cp ~{docker_dir} OverlapStats ${ID}.vcf ${SAMPLES_FILE} 1 . ~{max_overlap} ~{repeat_masker_file} ~{trf_file} &
             done
             wait
         else
