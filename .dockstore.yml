@@ -20,3 +20,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/OverlapStats.wdl
   testParameterFiles:
+- name: OverlapGraph
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/OverlapGraph.wdl
+  testParameterFiles:

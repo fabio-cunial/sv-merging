@@ -19,7 +19,10 @@ public class OverlapStats {
     
     
     /**
-     * Set $SAMPLE_ID_LIST=null$ to plot overlaps of all SVs in $VCF_FILE$.
+     * 
+     * @param args 
+     * 1: list of zero-based columns of the VCF matrix (=individuals); set it to
+     *    $null$ to plot overlaps of all SVs in $VCF_FILE$.
      */
     public static void main(String[] args) throws Exception {
         final String VCF_FILE = args[0];
@@ -48,14 +51,14 @@ public class OverlapStats {
         
         if (SAMPLE_ID_LIST.equalsIgnoreCase("null")) {
             buildPositionOverlapHistograms(VCF_FILE,-1,ONLY_PASS);
-            for (i=0; i<N_SV_TYPES; i++) printPositionOverlapHistogram(OUTPUT_DIR,21,i,0,MAX_OVERLAP_HISTOGRAM);
-            for (i=0; i<N_SV_TYPES; i++) printPositionOverlapHistogram(OUTPUT_DIR,22,i,0,MAX_OVERLAP_HISTOGRAM);
+            for (i=0; i<N_SV_TYPES; i++) printPositionOverlapHistogram(OUTPUT_DIR,21,i,-1,MAX_OVERLAP_HISTOGRAM);
+            for (i=0; i<N_SV_TYPES; i++) printPositionOverlapHistogram(OUTPUT_DIR,22,i,-1,MAX_OVERLAP_HISTOGRAM);
             bw = new BufferedWriter(new FileWriter(OUTPUT_DIR+"/gtCounts.txt"));
             bw.write("-1,"+n00+","+n01+","+n11+","+nDD+","+nD0+","+nD1+"\n");
             bw.close();            
-            for (i=0; i<N_SV_TYPES; i++) printRepeatHistogram(OUTPUT_DIR,21,i,0,MAX_OVERLAP_HISTOGRAM);
-            for (i=0; i<N_SV_TYPES; i++) printRepeatHistogram(OUTPUT_DIR,22,i,0,MAX_OVERLAP_HISTOGRAM);
-            printCallOverlapHistograms(VCF_FILE,0,ONLY_PASS,MAX_OVERLAP_HISTOGRAM,MAX_OVERLAP_FILTER,OUTPUT_DIR);
+            for (i=0; i<N_SV_TYPES; i++) printRepeatHistogram(OUTPUT_DIR,21,i,-1,MAX_OVERLAP_HISTOGRAM);
+            for (i=0; i<N_SV_TYPES; i++) printRepeatHistogram(OUTPUT_DIR,22,i,-1,MAX_OVERLAP_HISTOGRAM);
+            printCallOverlapHistograms(VCF_FILE,-1,ONLY_PASS,MAX_OVERLAP_HISTOGRAM,MAX_OVERLAP_FILTER,OUTPUT_DIR);
         }
         else {
             br = new BufferedReader(new FileReader(SAMPLE_ID_LIST));
@@ -103,8 +106,9 @@ public class OverlapStats {
     /**
      * Updates variables $histogram_*$ and $n*$.
      *
-     * @param sampleID -1 builds the histogram of all SVs, regardless of
-     * genotype.
+     * @param sampleID zero-based ID of a column of the VCF matrix 
+     * (=individual); use -1 to build the histogram of all SVs, without focusing
+     * on a specific individual.
      */
     private static final void buildPositionOverlapHistograms(String path, int sampleID, boolean onlyPass) throws IOException {
         int i, n;
@@ -188,6 +192,9 @@ public class OverlapStats {
      * Prints a file with a single row that contains the probability that a 
      * position of the genome covered by an SV, is covered by X SVs in total,
      * for $X \in [1..maxOverlap]$.
+     *
+     * @param sampleID zero-based; used just for constructing the name of the
+     * output file.
      */
     private static final void printPositionOverlapHistogram(String outputDir, int chr, int row, int sampleID, int maxOverlap) throws IOException {
         int i, n;
@@ -217,7 +224,7 @@ public class OverlapStats {
             case 3: svType="ins"; break;
             case 4: svType="all"; break;
         }
-        bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_chr"+chr+"_"+svType+"_histogram.txt"));
+        bw = new BufferedWriter(new FileWriter(outputDir+"/"+(sampleID>=0?sampleID:"all")+"_chr"+chr+"_"+svType+"_histogram.txt"));
         bw.write(sampleID+",");
         for (i=1; i<=maxOverlap; i++) bw.write((overlapHistogram[i]/sum)+",");
         bw.newLine(); bw.close();
@@ -229,15 +236,22 @@ public class OverlapStats {
     // ----------------------- CALL VS OVERLAP HISTOGRAM -----------------------
     
     /**
-     * Prints a file with a single row that contains the probability that a 
-     * call that occurs in sample $sampleID$ overlaps X other calls that occur 
-     * in the same sample $sampleID$, for $X \in [1..maxOverlapHistogram]$.
+     * For every SV type, prints a file with a single row that contains the 
+     * number of calls that occur in sample $sampleID$ and that overlap X other 
+     * calls of the same type that occur in the same $sampleID$, for $X \in
+     * [1..maxOverlapHistogram]$.
      *
      * Remark: the procedure assumes that $histogram_*$ has already been built.
      *
-     * @param sampleID 0 uses all calls in $mergedVcfPath$ (regardless of 
-     * sample), and prints a filtered VCF that does not contain any call that
-     * overlaps with $ > maxOverlapFilter $ other calls.
+     * @param sampleID zero-based ID of a column in the VCF matrix (=individual);
+     * -1 has the following effects: 
+     * 1. builds histograms using all calls in $mergedVcfPath$ (without focusing
+     *    on a specific individual);
+     * 2. prints a filtered VCF that does not contain any call, of any type,
+     *    that overlaps with $ > maxOverlapFilter $ other calls, of any type;
+     * 3. prints a VCF that contains all and only the calls, of any type, that
+     *    have the maximum recorded degree of overlap with other calls, of any 
+     *    type.
      */
     private static final void printCallOverlapHistograms(String mergedVcfPath, int sampleID, boolean onlyPass, int maxOverlapHistogram, int maxOverlapFilter, String outputDir) throws IOException {
         int i, j, n;
@@ -250,18 +264,12 @@ public class OverlapStats {
         int[][] histogram;
         double[][] callHistogram_chr21, callHistogram_chr22;
         
-        
------------> print also a vcf with all calls with max overlap recorded
-----------> add simple consistency checks for every histogram: max nonzero value x should have at least the same value on y.
-    add documentation of the above.
-        
-        
         // Building $callHistogram$.
         callHistogram_chr21 = new double[N_SV_TYPES][maxOverlapHistogram+1];
         for (i=0; i<N_SV_TYPES; i++) Arrays.fill(callHistogram_chr21[i],0);
         callHistogram_chr22 = new double[N_SV_TYPES][maxOverlapHistogram+1];
         for (i=0; i<N_SV_TYPES; i++) Arrays.fill(callHistogram_chr22[i],0);
-        if (sampleID==0) bw = new BufferedWriter(new FileWriter(outputDir+"/few_overlaps.vcf"));
+        if (sampleID==-1) bw = new BufferedWriter(new FileWriter(outputDir+"/few_overlaps.vcf"));
         else bw=null;
         br = new BufferedReader(new FileReader(mergedVcfPath));
         str=br.readLine();
@@ -284,7 +292,7 @@ public class OverlapStats {
             }
             length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
             if (length<0) length=-length;
-            if (sampleID>0) n=(tokens[9+sampleID].charAt(0)=='1'?1:0)+(tokens[9+sampleID].charAt(2)=='1'?1:0);
+            if (sampleID>=0) n=(tokens[9+sampleID].charAt(0)=='1'?1:0)+(tokens[9+sampleID].charAt(2)=='1'?1:0);
             else n=1;
             if (n!=0) {
                 to=position+length-1;
@@ -328,13 +336,13 @@ public class OverlapStats {
         // Printing
         labels = new String[] {"del","inv","dup","ins","all"};
         for (i=0; i<N_SV_TYPES; i++) {
-            bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_ch21_"+labels[i]+"_callHistogram.txt"));
+            bw = new BufferedWriter(new FileWriter(outputDir+"/"+(sampleID>=0?sampleID:"all")+"_ch21_"+labels[i]+"_callHistogram.txt"));
             bw.write(sampleID+",");
             sum=0.0;
             for (j=1; j<=maxOverlapHistogram; j++) sum+=callHistogram_chr21[i][j];
             for (j=1; j<=maxOverlapHistogram; j++) bw.write(callHistogram_chr21[i][j]+",");
             bw.newLine(); bw.close();
-            bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_ch22_"+labels[i]+"_callHistogram.txt"));
+            bw = new BufferedWriter(new FileWriter(outputDir+"/"+(sampleID>=0?sampleID:"all")+"_ch22_"+labels[i]+"_callHistogram.txt"));
             bw.write(sampleID+",");
             sum=0.0;
             for (j=1; j<=maxOverlapHistogram; j++) sum+=callHistogram_chr22[i][j];
@@ -431,7 +439,9 @@ public class OverlapStats {
      * covered by $j$ SVs. 
      *
      * @param row a row of $histogram_chr*$, i.e. an SV type (0=DEL, 1=INV,
-     * 2=DUP, 3=INS).
+     * 2=DUP, 3=INS);
+     * @param sampleID zero-based; used just for constructing the name of the
+     * output file.
      */
     private static final void printRepeatHistogram(String outputDir, int chr, int row, int sampleID, int maxOverlap) throws IOException {
         int i, j, n;
@@ -460,7 +470,7 @@ public class OverlapStats {
             case 2: svType="dup"; break;
             case 3: svType="ins"; break;
         }
-        bw = new BufferedWriter(new FileWriter(outputDir+"/"+sampleID+"_chr"+chr+"_"+svType+"_repeat_histogram.txt"));
+        bw = new BufferedWriter(new FileWriter(outputDir+"/"+(sampleID>=0?sampleID:"all")+"_chr"+chr+"_"+svType+"_repeat_histogram.txt"));
         for (i=0; i<3; i++) {
             for (j=1; j<=maxOverlap; j++) bw.write(overlapHistogram[i][j]+",");
             bw.newLine();
