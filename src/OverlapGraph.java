@@ -8,6 +8,12 @@ import java.io.*;
  */
 public class OverlapGraph {
     /**
+     * Total lengths
+     */
+    private static final int CHR21_LENGTH = 46709983;
+    private static final int CHR22_LENGTH = 50818468;
+    
+    /**
      * SV types. INS are represented as intervals of constant length centered at
      * the insertion position.
      */
@@ -25,7 +31,17 @@ public class OverlapGraph {
      * Connected components
      */
     private static int[] componentSize;
+    private static double[] componentTrfOverlap;  // Fraction, avg. on all calls
+    private static double[][] endpointAvg, endpointVariance;
+    private static double[] lengthAvg, lengthVariance;
+    private static int[][] endpointMin, endpointMax;
+    private static int[] lengthMin, lengthMax;
     private static int lastComponent;
+    
+    /**
+     * Columns: positions on the chromosome.
+     */
+    private static boolean[] trf_mask_chr21, trf_mask_chr22;
     
     /**
      * Output histograms
@@ -46,12 +62,16 @@ public class OverlapGraph {
         final boolean ONLY_PASS = Integer.parseInt(args[4])==1;
         final int MAX_DEGREE = Integer.parseInt(args[5]);
         final int MAX_COMPONENT_SIZE = Integer.parseInt(args[6]);
-        final String OUTPUT_DIR = args[7];
+        final String TRF_FILE = args[7];
+        final String OUTPUT_DIR = args[8];
         
         int sampleID;
         String str;
         BufferedReader br;
         
+        trf_mask_chr21 = new boolean[CHR21_LENGTH];
+        trf_mask_chr22 = new boolean[CHR22_LENGTH];
+        buildTrfMasks(TRF_FILE);
         if (SAMPLE_ID_LIST.equalsIgnoreCase("null")) {
             System.err.print("Loading all calls... ");
             loadCalls(-1,ONLY_CHR,SV_TYPE,VCF_FILE,ONLY_PASS);
@@ -62,6 +82,8 @@ public class OverlapGraph {
             printHistogram(-1,histogram_degree,ONLY_CHR+"_"+SV_TYPES[SV_TYPE]+"_degree_histogram",OUTPUT_DIR);
             printHistogram(-1,histogram_componentSize,ONLY_CHR+"_"+SV_TYPES[SV_TYPE]+"_componentSize_histogram",OUTPUT_DIR);
             printGraph(OUTPUT_DIR+"/all_"+ONLY_CHR+"_"+SV_TYPES[SV_TYPE]+"_graph.dot");
+            printComponentStats(OUTPUT_DIR+"/all_"+ONLY_CHR+"_"+SV_TYPES[SV_TYPE]+"_componentStats.txt");
+            printCallTrfOverlap(OUTPUT_DIR+"/all_"+ONLY_CHR+"_"+SV_TYPES[SV_TYPE]+"_trfOverlaps.txt");
         }
         else {
             br = new BufferedReader(new FileReader(SAMPLE_ID_LIST));
@@ -80,6 +102,39 @@ public class OverlapGraph {
             }
             br.close();
         }
+    }
+    
+    
+	private static final void buildTrfMasks(String path) throws IOException {
+		int i;
+		int start, end;
+		String str;
+		BufferedReader br;
+        boolean[] mask;
+		String[] tokens;
+
+		br = new BufferedReader(new FileReader(path));
+		str=br.readLine();
+		while (str!=null) {
+			tokens=str.split(",");
+            start=Integer.parseInt(tokens[1])-1;
+            if (start<0) start=0;
+            end=Integer.parseInt(tokens[2])-1;
+            mask=null;
+            if (tokens[0].equalsIgnoreCase("chr21")) {
+                if (end>=CHR21_LENGTH) end=CHR21_LENGTH-1;
+                mask=trf_mask_chr21;
+            }
+            else if (tokens[0].equalsIgnoreCase("chr22")) {
+                if (end>=CHR22_LENGTH) end=CHR22_LENGTH-1;
+                mask=trf_mask_chr22;
+            }
+            if (mask!=null) {
+                for (i=start; i<=end; i++) mask[i]=true;
+            }
+			str=br.readLine();
+		}
+		br.close();
     }
     
     
@@ -155,8 +210,10 @@ public class OverlapGraph {
      * builds $histogram_degree, histogram_componentSize$.
      */
     private static final void buildComponents(int maxDegree, int maxComponentSize) {
+        final int N_BINS = 50;  // Arbitrary
         int i, j;
-        int degree, size, chr, first, last;
+        int degree, size, chr, first, last, component, length;
+        double quantum;
         
         System.err.print("Sorting calls...");
         Arrays.sort(calls,0,lastCall+1);
@@ -174,17 +231,70 @@ public class OverlapGraph {
             }
         }
         componentSize = new int[lastComponent+1];
+        componentTrfOverlap = new double[lastComponent+1];
+        endpointAvg = new double[lastComponent+1][2];
+        lengthAvg = new double[lastComponent+1];
+        endpointMin = new int[lastComponent+1][2];
+        for (i=0; i<=lastComponent; i++) { endpointMin[i][0]=Integer.MAX_VALUE; endpointMin[i][1]=Integer.MAX_VALUE; }
+        endpointMax = new int[lastComponent+1][2];
+        lengthMin = new int[lastComponent+1];
+        for (i=0; i<=lastComponent; i++) lengthMin[i]=Integer.MAX_VALUE;
+        lengthMax = new int[lastComponent+1];
         for (i=0; i<=lastCall; i++) {
             degree=calls[i].degree;
             if (degree>maxDegree) degree=maxDegree;
             histogram_degree[degree]++;
-            componentSize[calls[i].component]++;
+            component=calls[i].component;
+            componentSize[component]++;
+            componentTrfOverlap[component]+=calls[i].getTrfOverlap();
+            if (calls[i].first<endpointMin[component][0]) endpointMin[component][0]=calls[i].first;
+            if (calls[i].first>endpointMax[component][0]) endpointMax[component][0]=calls[i].first;
+            endpointAvg[component][0]+=calls[i].first;
+            if (calls[i].last<endpointMin[component][1]) endpointMin[component][1]=calls[i].last;
+            if (calls[i].last>endpointMax[component][1]) endpointMax[component][1]=calls[i].last;
+            endpointAvg[component][1]+=calls[i].last;
+            length=calls[i].last-calls[i].first+1;
+            if (length<lengthMin[component]) lengthMin[component]=length;
+            if (length>lengthMax[component]) lengthMax[component]=length;
+            lengthAvg[component]+=length;
         }
         for (i=0; i<=lastComponent; i++) {
             size=componentSize[i];
+            componentTrfOverlap[i]/=size;
+            endpointAvg[i][0]/=size;
+            endpointAvg[i][1]/=size;
+            lengthAvg[i]/=size;
             if (size>maxComponentSize) size=maxComponentSize;
             histogram_componentSize[size]++;
         }
+        endpointVariance = new double[lastComponent+1][2];
+        lengthVariance = new double[lastComponent+1];
+        for (i=0; i<=lastCall; i++) {
+            component=calls[i].component;
+            endpointVariance[component][0]+=(calls[i].first-endpointAvg[component][0])*(calls[i].first-endpointAvg[component][0]);
+            endpointVariance[component][1]+=(calls[i].last-endpointAvg[component][1])*(calls[i].last-endpointAvg[component][1]);
+            length=calls[i].last-calls[i].first+1;
+            lengthVariance[component]+=(length-lengthAvg[component])*(length-lengthAvg[component]);
+        }
+        for (i=0; i<=lastComponent; i++) {
+            size=componentSize[i];
+            endpointVariance[i][0]/=size;
+            endpointVariance[i][1]/=size;
+            lengthVariance[i]/=size;
+        }
+    }
+    
+    
+    /**
+     *
+     */
+    private static final void printComponentStats(String path) throws IOException {
+        int i;
+        BufferedWriter bw;
+        
+        bw = new BufferedWriter(new FileWriter(path));
+        for (i=0; i<=lastComponent; i++) bw.write(componentSize[i]+","+componentTrfOverlap[i]+","+endpointVariance[i][0]+","+endpointVariance[i][1]+","+lengthVariance[i]+","+(endpointMax[i][0]-endpointMin[i][0])+","+(endpointMax[i][1]-endpointMin[i][1])+","+(lengthMax[i]-lengthMin[i])+"\n");
+        bw.close();
     }
     
     
@@ -227,6 +337,19 @@ public class OverlapGraph {
     }
     
     
+    /**
+     * Prints a row for every call.
+     */
+    private static final void printCallTrfOverlap(String path) throws IOException {
+        int i;
+        BufferedWriter bw;
+        
+        bw = new BufferedWriter(new FileWriter(path));
+        for (i=0; i<=lastCall; i++) bw.write((calls[i].last-calls[i].first+1)+","+calls[i].getTrfOverlap()+"\n");
+        bw.close();
+    }
+    
+    
     private static class Call implements Comparable {
         public int type, chr, first, last;
         public int component, degree;
@@ -236,6 +359,21 @@ public class OverlapGraph {
         public Call(int t, int c, int f, int l) {
             this.type=t; this.chr=c; this.first=f; this.last=l;
             component=-1; degree=0;
+        }
+        
+        /**
+         * @return the fraction of the call that overlaps with the TRF mask.
+         */
+        public double getTrfOverlap() {
+            int i;
+            double out;
+            final boolean[] mask = chr==21?trf_mask_chr21:trf_mask_chr22;
+            
+            out=0.0;
+            for (i=first; i<=last; i++) {
+                if (mask[i]) out+=1.0;
+            }
+            return out/(last-first+1);
         }
         
         public int compareTo(Object other) {

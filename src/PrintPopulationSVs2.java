@@ -8,6 +8,11 @@ import java.text.*;
 
 
 public class PrintPopulationSVs2 {
+    /**
+     * INS are represented as intervals of constant length centered at the
+     * insertion position.
+     */
+    private static final int INS_SLACK = 100;  // Arbitrary
     
     private static BufferedImage image;
     private static int N_ROWS, N_COLUMNS;
@@ -160,10 +165,17 @@ public class PrintPopulationSVs2 {
 				continue;
 			}
             type=getType_infoField(getField(tokens[7],SVTYPE_STR));     
-            if (type!=TYPE_INSERTION && type!=TYPE_BREAKEND) {
+            if (type!=TYPE_BREAKEND) {
                 color=TYPE_COLORS[type-1];
-                length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
-                if (length<0) length=-length;
+                if (type==TYPE_INSERTION) {
+                    length=INS_SLACK*2;
+                    position-=INS_SLACK;
+                    if (position<0) position=0;
+                }
+                else {
+                    length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
+                    if (length<0) length=-length;
+                }
                 yPrime=drawSV(fileID,frameFromX,frameFromY,frameToY,position,position+length-1,color,HEIGHT_PIXELS_FILE);
                 if (yPrime>yMax) yMax=yPrime;
             }
@@ -209,6 +221,7 @@ public class PrintPopulationSVs2 {
             str=br.readLine();
         }
         br.close();
+        if (yMax==-1) yMax=frameFromY;
         return yMax;
     }
     
@@ -296,6 +309,7 @@ public class PrintPopulationSVs2 {
 			str=br.readLine();
 		}
 		br.close();
+        if (yMax==-1) yMax=frameFromY;
         return yMax;
     }
 
@@ -328,6 +342,7 @@ public class PrintPopulationSVs2 {
 			str=br.readLine();
 		}
 		br.close();
+        if (yMax==-1) yMax=frameFromY;
         return yMax;
     }
     

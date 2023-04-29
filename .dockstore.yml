@@ -25,3 +25,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/OverlapGraph.wdl
   testParameterFiles:
+- name: VgIndex
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/VgIndex.wdl
+  testParameterFiles:
