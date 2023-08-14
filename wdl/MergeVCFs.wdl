@@ -88,10 +88,8 @@ task MergeVCFsImpl {
             fi
             python3 /sv-merging/preprocess_vcf.py tmp1.vcf ~{reference_fa} > tmp2.vcf
             rm -f tmp1.vcf
-            tabix tmp2.vcf
             bcftools sort --output-type v tmp2.vcf > ${LOCAL_FILE}.vcf
-            rm -f tmp2.vcf*
-            tabix ${LOCAL_FILE}.vcf
+            rm -f tmp2.vcf
             echo ${LOCAL_FILE}.vcf >> list.txt
         done < ~{vcf_addresses}
         
