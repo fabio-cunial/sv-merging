@@ -100,7 +100,7 @@ task MergeVCFsImpl {
             source activate jasmine
             ${TIME_COMMAND} jasmine --output_genotypes threads=${N_THREADS} file_list=list.txt out_file=${MERGED_VCF}
             conda deactivate
-            bgzip ${MERGED_VCF}
+            bcftools sort --output-type z ${MERGED_VCF} > ${MERGED_VCF}.gz
             tabix ${MERGED_VCF}.gz
             uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
         fi
