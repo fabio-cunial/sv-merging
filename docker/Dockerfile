@@ -6,9 +6,9 @@ WORKDIR ${work_dir}
 
 # --------------------------------- Versions -----------------------------------
 ARG gcloud_version=405.0.1
-ARG htslib_version=1.16
-ARG samtools_version=1.16.1
-ARG bcftools_version=1.16
+ARG htslib_version=1.18
+ARG samtools_version=1.18
+ARG bcftools_version=1.18
 ARG truvari_version=3.5.0
 ARG survivor_version=1.0.7
 ARG jasmine_version=1.1.5
@@ -168,3 +168,9 @@ RUN svimmer -h
 COPY ./preprocess_vcf.py ${work_dir}/
 COPY *.java ${work_dir}/
 RUN javac ${work_dir}/*.java
+
+# BEDTOOLS
+ARG bedtools_version=2.31.0
+RUN wget https://github.com/arq5x/bedtools2/releases/download/v${bedtools_version}/bedtools.static \
+    && mv ./bedtools.static ./bedtools \
+    && chmod +x ./bedtools

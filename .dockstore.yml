@@ -1,5 +1,10 @@
 version: 1.2
 workflows:
+- name: MergeVCFs
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/MergeVCFs.wdl
+  testParameterFiles:
 - name: GetVCFs
   subclass: wdl
   publish: True
