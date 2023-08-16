@@ -9,6 +9,7 @@ workflow MergeVCFs {
         File reference_fa
         File reference_fai
         String output_dir
+        Int filterPAV
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -23,7 +24,8 @@ workflow MergeVCFs {
                 region = region,
                 output_dir = output_dir,
                 reference_fa = reference_fa,
-                reference_fai = reference_fai
+                reference_fai = reference_fai,
+                filterPAV = filterPAV
         }
     }
     
@@ -39,6 +41,7 @@ task MergeVCFsImpl {
         String output_dir
         File reference_fa
         File reference_fai
+        Int filterPAV
     }
     parameter_meta {
         vcf_addresses: "File containing a list of .vcf.gz bucket addresses."
@@ -85,6 +88,12 @@ task MergeVCFsImpl {
             if [ ${TEST} -eq 1 ]; then
                 export GCS_OAUTH_TOKEN=$(gcloud auth print-access-token)
                 bcftools view --threads ${N_THREADS} --include "FILTER=\"PASS\" || FILTER=\".\"" --regions "~{region}" --output-type v ${REMOTE_VCF_GZ_FILE} > tmp1.vcf
+            fi
+            if [ ~{filterPAV} -eq 1 ]; then
+                MIN_SV_LENGTH="40"
+                java ~{docker_dir}/PAV2SVs tmp1.vcf ${MIN_SV_LENGTH} tmp2.vcf
+                rm -f tmp1.vcf
+                mv tmp2.vcf tmp1.vcf
             fi
             python3 /sv-merging/preprocess_vcf.py tmp1.vcf ~{reference_fa} > tmp2.vcf
             rm -f tmp1.vcf
