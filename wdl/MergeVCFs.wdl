@@ -91,7 +91,7 @@ task MergeVCFsImpl {
             fi
             if [ ~{filterPAV} -eq 1 ]; then
                 MIN_SV_LENGTH="40"
-                java ~{docker_dir}/PAV2SVs tmp1.vcf ${MIN_SV_LENGTH} tmp2.vcf
+                java -cp ~{docker_dir} PAV2SVs tmp1.vcf ${MIN_SV_LENGTH} tmp2.vcf
                 rm -f tmp1.vcf
                 mv tmp2.vcf tmp1.vcf
             fi
