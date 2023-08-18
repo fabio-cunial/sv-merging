@@ -6,6 +6,8 @@ import java.io.*;
  * On jasmine, ~50% of all calls <=10kb are discarded because they overlap
  * another call. ~80% of all calls >10kb are discarded because they overlap
  * another call.
+ *
+ * Regenotyping the jasmine short calls with LRcaller takes 25h and 500$.
  */
 public class KeepSimpleCalls {
     /**

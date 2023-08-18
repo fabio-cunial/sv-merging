@@ -102,14 +102,23 @@ task MergeVCFsImpl {
             echo ${LOCAL_FILE}.vcf >> list.txt
         done < ~{vcf_addresses}
         
-        # JASMINE, default parameters.
-        MERGED_VCF="jasmine_~{region}.vcf"
+#        # JASMINE, default parameters.
+#        MERGED_VCF="jasmine_~{region}.vcf"
+#        TEST=$(gsutil -q stat ~{output_dir}/${MERGED_VCF}.gz && echo 0 || echo 1)
+#        if [ ${TEST} -eq 1 ]; then
+#            source activate jasmine
+#            ${TIME_COMMAND} jasmine --output_genotypes threads=${N_THREADS} file_list=list.txt out_file=${MERGED_VCF}
+#            conda deactivate
+#            bcftools sort --output-type z ${MERGED_VCF} > ${MERGED_VCF}.gz
+#            tabix ${MERGED_VCF}.gz
+#            uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
+#        fi
+        
+        # BCFTOOLS ONLY
+        MERGED_VCF="bcftools_~{region}.vcf"
         TEST=$(gsutil -q stat ~{output_dir}/${MERGED_VCF}.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
-            source activate jasmine
-            ${TIME_COMMAND} jasmine --output_genotypes threads=${N_THREADS} file_list=list.txt out_file=${MERGED_VCF}
-            conda deactivate
-            bcftools sort --output-type z ${MERGED_VCF} > ${MERGED_VCF}.gz
+            ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output ${MERGED_VCF}.gz
             tabix ${MERGED_VCF}.gz
             uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
         fi
