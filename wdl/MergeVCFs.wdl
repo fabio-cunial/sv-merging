@@ -137,7 +137,7 @@ task MergeVCFsImpl {
         MERGED_VCF="bcftools_~{region}.vcf"
         TEST=$(gsutil -q stat ~{output_dir}/${MERGED_VCF}.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
-            ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output ${MERGED_VCF}.gz
+            ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list.txt --output-type z --output ${MERGED_VCF}.gz
             tabix -f ${MERGED_VCF}.gz
             uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
         fi
