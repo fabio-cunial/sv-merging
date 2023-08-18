@@ -1,6 +1,10 @@
 version 1.0
 
 
+# regions = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"] 
+#
+# Remark: jasmine takes a long time on PBSV, especially on BNDs. We should just filter out BNDs before feedint the VCFs to jasmine.
+#
 #
 workflow MergeVCFs {
     input {
@@ -80,7 +84,7 @@ task MergeVCFsImpl {
             done
         }
         
-        # Downloading VCF region
+        # Downloading and sorting VCF region
         touch list.txt
         while read REMOTE_VCF_GZ_FILE; do
             LOCAL_FILE=$(basename -s .vcf.gz ${REMOTE_VCF_GZ_FILE})
@@ -97,9 +101,24 @@ task MergeVCFsImpl {
             fi
             python3 /sv-merging/preprocess_vcf.py tmp1.vcf ~{reference_fa} > tmp2.vcf
             rm -f tmp1.vcf
-            bcftools sort --output-type v tmp2.vcf > ${LOCAL_FILE}.vcf
+            
+            
+            
+            # For jasmine:
+            #bcftools sort --output-type v tmp2.vcf > ${LOCAL_FILE}.vcf
+            #rm -f tmp2.vcf
+            #echo ${LOCAL_FILE}.vcf >> list.txt
+            
+            
+            # For bcftools merge:
+            bcftools sort --output-type z tmp2.vcf > ${LOCAL_FILE}.vcf.gz
+            tabix ${LOCAL_FILE}.vcf.gz
             rm -f tmp2.vcf
-            echo ${LOCAL_FILE}.vcf >> list.txt
+            echo ${LOCAL_FILE}.vcf.gz >> list.txt
+            
+            
+            
+            
         done < ~{vcf_addresses}
         
 #        # JASMINE, default parameters.

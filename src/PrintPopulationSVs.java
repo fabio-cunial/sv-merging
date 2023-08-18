@@ -62,12 +62,12 @@ public class PrintPopulationSVs {
         
         System.err.println("Estimating number of rows...");
         histogram = new int[8][N_COLUMNS];
-        drawVCF(0,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawVCF(1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawVCF(2,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
-        if (INPUT_FILE_SVPOP!=null) drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
+        //drawVCF(0,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //drawVCF(1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //drawVCF(2,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //if (INPUT_FILE_SVPOP!=null) drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
         drawVCF(6,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(7,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         maxRows = new int[histogram.length];
@@ -93,43 +93,43 @@ public class PrintPopulationSVs {
 		}
         y=0;
         
-        System.err.println("Printing: truvari collapse 1");
-        drawVCF(-1,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[0]-1);
-        y+=maxRows[0];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
-        
-        System.err.println("Printing: truvari collapse 2");
-        drawVCF(-1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[1]-1);
-        y+=maxRows[1];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
-        
-        System.err.println("Printing: truvari collapse 3");
-        drawVCF(-1,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
-        y+=maxRows[2];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
-        
-        System.err.println("Printing: truvari collapse 4");
-        drawVCF(-1,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[3]-1);
-        y+=maxRows[3];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
-        
-        System.err.println("Printing: survivor");
-        drawVCF(-1,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[4]-1);
-        y+=maxRows[4];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
-        
-        if (INPUT_FILE_SVPOP!=null) {
-            System.err.println("Printing: svpop");
-            drawBED(-1,INPUT_FILE_SURVIVOR,CHR,FROM_POS,TO_POS,y,y+maxRows[5]-1);
-            y+=maxRows[5];
-            for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-            y++;
-        }
+        // System.err.println("Printing: truvari collapse 1");
+        // drawVCF(-1,INPUT_FILE_TRUVARI_1,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[0]-1);
+        // y+=maxRows[0];
+        // for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        // y++;
+        //
+        // System.err.println("Printing: truvari collapse 2");
+        // drawVCF(-1,INPUT_FILE_TRUVARI_2,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[1]-1);
+        // y+=maxRows[1];
+        // for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        // y++;
+        //
+        // System.err.println("Printing: truvari collapse 3");
+        // drawVCF(-1,INPUT_FILE_TRUVARI_3,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[2]-1);
+        // y+=maxRows[2];
+        // for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        // y++;
+        //
+        // System.err.println("Printing: truvari collapse 4");
+        // drawVCF(-1,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[3]-1);
+        // y+=maxRows[3];
+        // for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        // y++;
+        //
+        // System.err.println("Printing: survivor");
+        // drawVCF(-1,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[4]-1);
+        // y+=maxRows[4];
+        // for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        // y++;
+        //
+        // if (INPUT_FILE_SVPOP!=null) {
+        //     System.err.println("Printing: svpop");
+        //     drawBED(-1,INPUT_FILE_SURVIVOR,CHR,FROM_POS,TO_POS,y,y+maxRows[5]-1);
+        //     y+=maxRows[5];
+        //     for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+        //     y++;
+        // }
         
         System.err.println("Printing: jasmine");
         drawVCF(-1,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[6]-1);
