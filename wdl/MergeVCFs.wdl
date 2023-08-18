@@ -112,7 +112,7 @@ task MergeVCFsImpl {
             
             # For bcftools merge:
             bcftools sort --output-type z tmp2.vcf > ${LOCAL_FILE}.vcf.gz
-            tabix ${LOCAL_FILE}.vcf.gz
+            tabix -f ${LOCAL_FILE}.vcf.gz
             rm -f tmp2.vcf
             echo ${LOCAL_FILE}.vcf.gz >> list.txt
             
@@ -129,7 +129,7 @@ task MergeVCFsImpl {
 #            ${TIME_COMMAND} jasmine --output_genotypes threads=${N_THREADS} file_list=list.txt out_file=${MERGED_VCF}
 #            conda deactivate
 #            bcftools sort --output-type z ${MERGED_VCF} > ${MERGED_VCF}.gz
-#            tabix ${MERGED_VCF}.gz
+#            tabix -f ${MERGED_VCF}.gz
 #            uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
 #        fi
         
@@ -138,7 +138,7 @@ task MergeVCFsImpl {
         TEST=$(gsutil -q stat ~{output_dir}/${MERGED_VCF}.gz && echo 0 || echo 1)
         if [ ${TEST} -eq 1 ]; then
             ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --apply-filters PASS --merge none --file-list list.txt --output-type z --output ${MERGED_VCF}.gz
-            tabix ${MERGED_VCF}.gz
+            tabix -f ${MERGED_VCF}.gz
             uploadVCF ${MERGED_VCF}.gz ${MERGED_VCF}.gz.tbi
         fi
     >>>
