@@ -35,3 +35,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/VgIndex.wdl
   testParameterFiles:
+- name: PhasedMerge
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/PhasedMerge.wdl
+  testParameterFiles:

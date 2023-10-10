@@ -68,6 +68,9 @@ public class KeepSimpleCalls {
     /**
      * Loads the calls in $path$ into global array $calls$, which is not
      * necessarily sorted when the procedure completes.
+     *
+     * Remark: only calls of type DEL,INS,DUP,INV are kept. Symbolic INS are
+     * discarded.
      */
     private static final void loadCalls(String path, boolean passOnly) throws IOException {
         final int INS_SLACK = 100;  // Arbitrary
@@ -89,26 +92,33 @@ public class KeepSimpleCalls {
                 continue;
             }
             tokens=str.split("\t");
-            position=Integer.parseInt(tokens[1]);
+            chr=chr2int(tokens[0]);
+            if (chr==-1) {
+                str=br.readLine();
+                continue;
+            }
 			if (passOnly && !tokens[6].equalsIgnoreCase(PASS_STR) && !tokens[6].equalsIgnoreCase(".")) {
 				str=br.readLine();
 				continue;
 			}
+            position=Integer.parseInt(tokens[1]);
             row=svType2Row(getField(tokens[7],SVTYPE_STR));
             if (row==-1) {
 				str=br.readLine();
 				continue;
             }
-            if (row==3) { to=position+INS_SLACK; position-=INS_SLACK; }
+            else if (row==3) {
+                if (tokens[4].charAt(0)=='<') {
+                    str=br.readLine();
+                    continue;
+                }
+                to=position+INS_SLACK; position-=INS_SLACK;
+                length=tokens[4].length()-1; 
+            }
             else {
                 length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
                 if (length<0) length=-length;
                 to=position+length;
-            }
-            chr=chr2int(tokens[0]);
-            if (chr==-1) {
-                str=br.readLine();
-                continue;
             }
             lastCall++;
             if (lastCall==calls.length) {
@@ -116,7 +126,7 @@ public class KeepSimpleCalls {
                 System.arraycopy(calls,0,newArray,0,calls.length);
                 calls=newArray;
             }
-            calls[lastCall] = new Call(row,chr,position+1,to,str);
+            calls[lastCall] = new Call(row,chr,position+1,to,length,str);
             str=br.readLine();
         }
         br.close();
@@ -134,7 +144,7 @@ public class KeepSimpleCalls {
         
         lastCall_short=-1;
         for (i=0; i<=lastCall; i++) {
-            if (calls[i].last-calls[i].first+1<threshold) {
+            if (calls[i].length<threshold) {
                 lastCall_short++;
                 tmpCall=calls[lastCall_short];
                 calls[lastCall_short]=calls[i];
@@ -179,7 +189,7 @@ public class KeepSimpleCalls {
                 System.arraycopy(calls,0,newArray,0,calls.length);
                 calls=newArray;
             }
-            calls[lastCall] = new Call(-1,chr,start,end,null);
+            calls[lastCall] = new Call(-1,chr,start,end,end-start+1,null);
 			str=br.readLine();
 		}
 		br.close();
@@ -341,6 +351,7 @@ public class KeepSimpleCalls {
     private static class Call implements Comparable {
         public int chr;  // One-based
         public int first, last;  // One-based
+        public int length;
         public int type;  // -1=tandem interval.
         public String str;
         
@@ -348,8 +359,8 @@ public class KeepSimpleCalls {
         
         public Call() { }
         
-        public Call(int t, int c, int f, int l, String s) {
-            this.type=t; this.chr=c; this.first=f; this.last=l;
+        public Call(int t, int c, int f, int la, int le, String s) {
+            this.type=t; this.chr=c; this.first=f; this.last=la; this.length=le;
             this.str=s; component=-1;
         }
         
@@ -362,6 +373,8 @@ public class KeepSimpleCalls {
             else if (first>otherCall.first) return 1;
             if (last<otherCall.last) return -1;
             else if (last>otherCall.last) return 1;
+            if (length<otherCall.length) return -1;
+            else if (length>otherCall.length) return 1;
             return 0;
         }
     }

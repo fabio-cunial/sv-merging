@@ -11,20 +11,23 @@ public class PAV2SVs {
     public static void main(String[] args) throws IOException {
         final String INPUT_VCF = args[0];
         final int MIN_SV_LENGTH=Integer.parseInt(args[1]);
-        final String OUTPUT_VCF = args[2];
+        final String OUTPUT_SV_VCF = args[2];
+        final String OUTPUT_SNP_VCF = args[3];
         
         int row, length, nCalls;
         String str;
         BufferedReader br;
-        BufferedWriter bw;
+        BufferedWriter bw1, bw2;
         String[] tokens;
         
         br = new BufferedReader(new FileReader(INPUT_VCF));
-        bw = new BufferedWriter(new FileWriter(OUTPUT_VCF));
+        bw1 = new BufferedWriter(new FileWriter(OUTPUT_SV_VCF));
+        bw2 = new BufferedWriter(new FileWriter(OUTPUT_SNP_VCF));
         str=br.readLine(); nCalls=0;
         while (str!=null) {
             if (str.charAt(0)==COMMENT) {
-                bw.write(str); bw.newLine();
+                bw1.write(str); bw1.newLine();
+                bw2.write(str); bw2.newLine();
                 str=br.readLine();
                 continue;
             }
@@ -33,19 +36,21 @@ public class PAV2SVs {
             tokens=str.split("\t");
             row=svType2Row(getField(tokens[7],SVTYPE_STR));
             if (row==-1) {
+                bw2.write(str); bw2.newLine();
 		        str=br.readLine();
 		        continue;
             }
             length=Integer.parseInt(getField(tokens[7],SVLEN_STR));
             if (length<0) length=-length;
             if (length<MIN_SV_LENGTH) {
-		        str=br.readLine();
+		        bw2.write(str); bw2.newLine();
+                str=br.readLine();
 		        continue;
             }
-            bw.write(str); bw.newLine();
+            bw1.write(str); bw1.newLine();
             str=br.readLine();
         }
-        br.close(); bw.close();
+        br.close(); bw1.close(); bw2.close();
     }
     
     

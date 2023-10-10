@@ -48,7 +48,7 @@ public class PrintPopulationSVs {
         final String INPUT_FILE_JASMINE = args[14];
         final String OUTPUT_FILE = args[15];
         
-        final boolean ONLY_PASS = true;
+        final boolean ONLY_PASS = false;
         N_COLUMNS=(TO_POS-FROM_POS)/QUANTUM+1;
         
         boolean sameChromosome;
@@ -68,7 +68,7 @@ public class PrintPopulationSVs {
         //drawVCF(3,INPUT_FILE_TRUVARI_4,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         //drawVCF(4,INPUT_FILE_SURVIVOR,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         //if (INPUT_FILE_SVPOP!=null) drawBED(5,INPUT_FILE_SVPOP,CHR,FROM_POS,TO_POS,0,0);
-        drawVCF(6,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
+        //drawVCF(6,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         drawVCF(7,INPUT_FILE_BCFTOOLS_MERGE,CHR,ONLY_PASS,FROM_POS,TO_POS,0,0);
         maxRows = new int[histogram.length];
         for (i=0; i<histogram.length; i++) {
@@ -131,11 +131,11 @@ public class PrintPopulationSVs {
         //     y++;
         // }
         
-        System.err.println("Printing: jasmine");
-        drawVCF(-1,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[6]-1);
-        y+=maxRows[6];
-        for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
-        y++;
+        // System.err.println("Printing: jasmine");
+//         drawVCF(-1,INPUT_FILE_JASMINE,CHR,ONLY_PASS,FROM_POS,TO_POS,y,y+maxRows[6]-1);
+//         y+=maxRows[6];
+//         for (x=0; x<N_COLUMNS; x++) image.setRGB(x,y,COLOR_BACKGROUND_LINE);
+//         y++;
         
         System.err.println("Printing: RepeatMasker annotations");
         yMax=drawRepeatMaskerAnnotations(REPEAT_MASKER_FILE,REPEAT_MASKER_NROWS,CHR,FROM_POS,TO_POS,y,N_ROWS-1);

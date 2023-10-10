@@ -174,3 +174,6 @@ ARG bedtools_version=2.31.0
 RUN wget https://github.com/arq5x/bedtools2/releases/download/v${bedtools_version}/bedtools.static \
     && mv ./bedtools.static ./bedtools \
     && chmod +x ./bedtools
+
+# PANGENIE
+RUN git clone https://bitbucket.org/jana_ebler/vcf-merging.git
