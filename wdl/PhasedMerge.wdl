@@ -145,7 +145,7 @@ task PangenieMerge {
     parameter_meta {
     }
     
-    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*20 + size(reference_fa, "GB")*2
+    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*20 + ceil(size(reference_fa, "GB"))*2
     String docker_dir = "/sv-merging"
     String work_dir = "/cromwell_root/sv-merging"
     
