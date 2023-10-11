@@ -98,7 +98,12 @@ task MergePAV {
             rm -f snps.vcf
             echo ${LOCAL_FILE}_snps.vcf.gz >> list_snps.txt
         done < ~{vcf_addresses}
-                
+        
+        # Remark: $bcftools merge$ makes the following changes to GT, which we
+        # have to reverse:
+        # .|1 -> ./1
+        # 1|. -> 1/.
+        
         # Merging SVs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed 's@./1@.|1@g;s@1/.@1|.@g' | bgzip > bcftools_svs.vcf.gz
         tabix -f bcftools_svs.vcf.gz
@@ -110,7 +115,7 @@ task MergePAV {
         bcftools view --no-header truvari_collapse_sorted.vcf.gz | head -n 20 && echo 0 || echo 1
         
         # Naive merging of SNPs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt --output-type z --output bcftools_snps.vcf.gz
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed 's@./1@.|1@g;s@1/.@1|.@g' | bgzip > bcftools_snps.vcf.gz
         tabix -f bcftools_snps.vcf.gz
         bcftools view --no-header bcftools_snps.vcf.gz | head -n 20 && echo 0 || echo 1
         
