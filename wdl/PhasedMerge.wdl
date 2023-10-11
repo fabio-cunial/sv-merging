@@ -105,7 +105,7 @@ task MergePAV {
         bcftools view --no-header bcftools_svs.vcf.gz | head -n 20 && echo 0 || echo 1
         ${TIME_COMMAND} truvari collapse --input bcftools_svs.vcf.gz --output truvari_collapse.vcf --reference ~{reference_fa}
         bcftools sort --output-type z truvari_collapse.vcf > truvari_collapse_sorted.vcf.gz
-        tabix -s truvari_collapse_sorted.vcf.gz
+        tabix -f truvari_collapse_sorted.vcf.gz
         rm -f truvari_collapse.vcf
         bcftools view --no-header truvari_collapse_sorted.vcf.gz | head -n 20 && echo 0 || echo 1
         
@@ -127,7 +127,7 @@ task MergePAV {
     runtime {
         docker: "fcunial/sv-merging"
         cpu: 16  # Arbitrary
-        memory: "128GB"  # Arbitrary
+        memory: "64GB"  # Arbitrary
         disks: "local-disk 128 HDD"  # Arbitrary
         preemptible: 0
     }
