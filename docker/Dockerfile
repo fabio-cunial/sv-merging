@@ -176,4 +176,5 @@ RUN wget https://github.com/arq5x/bedtools2/releases/download/v${bedtools_versio
     && chmod +x ./bedtools
 
 # PANGENIE
+#COPY ./pangenie.sh ${work_dir}/
 RUN git clone https://bitbucket.org/jana_ebler/vcf-merging.git

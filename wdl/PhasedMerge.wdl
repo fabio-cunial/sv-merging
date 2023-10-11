@@ -160,7 +160,7 @@ task PangenieMerge {
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( 2 * ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         TIME_COMMAND="/usr/bin/time --verbose"
-        
+
         gunzip -c ~{vcf_gz} > input.vcf
         cp -r ~{docker_dir}/vcf-merging/pangenome-graph-from-callset/ ./
         cd pangenome-graph-from-callset/
@@ -168,7 +168,7 @@ task PangenieMerge {
         echo "vcf: ~{work_dir}/input.vcf" >> config.yaml
         echo "reference: ~{reference_fa}" >> config.yaml
         echo "outdir: ~{work_dir}/results" >> config.yaml
-        conda activate svpop
+        source activate svpop
         ${TIME_COMMAND} snakemake -j ${N_THREADS}
         conda deactivate
         cd ~{work_dir}
