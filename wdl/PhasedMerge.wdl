@@ -121,8 +121,8 @@ task MergePAV {
     >>>
     
     output {
-        File merged_vcf = work_dir + "final.vcf.gz"
-        File merged_tbi = work_dir + "final.vcf.gz.tbi"
+        File merged_vcf = work_dir + "/final.vcf.gz"
+        File merged_tbi = work_dir + "/final.vcf.gz.tbi"
     }
     runtime {
         docker: "fcunial/sv-merging"
