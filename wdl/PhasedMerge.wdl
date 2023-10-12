@@ -106,7 +106,7 @@ task MergePAV {
         #
         # Remark: we convert every '.' to a 0, since PanGenie's multiallelic VCF
         # tool discards a haplotype if it contains even a single '.'.
-        REPLACEMENT_COMMAND='s@\./1@0|1@g; s@1/\.@1|0@g; s@\./\.@0|0@g; s@\.|1@0|1@g; s@1|\.@1|0@g; s@\.|\.@0|0@g'
+        REPLACEMENT_COMMAND='s@\./1@0|1@g;s@1/\.@1|0@g;s@\./\.@0|0@g;s@\.|1@0|1@g;s@1|\.@1|0@g;s@\.|\.@0|0@g'
         
         # Merging SVs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_svs.vcf.gz
