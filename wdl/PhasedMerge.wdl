@@ -103,9 +103,13 @@ task MergePAV {
         # have to reverse:
         # .|1 -> ./1
         # 1|. -> 1/.
+        #
+        # Remark: we convert every '.' to a 0, since PanGenie's multiallelic VCF
+        # tool discards a haplotype if it contains even a single '.'.
+        REPLACEMENT_COMMAND='s@./1@0|1@g;s@1/.@1|0@g;s@./.@0|0@g;s@.|1@0|1@g;s@1|.@1|0@g;s@.|.@0|0@g'
         
         # Merging SVs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed 's@./1@.|1@g;s@1/.@1|.@g' | bgzip > bcftools_svs.vcf.gz
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_svs.vcf.gz
         tabix -f bcftools_svs.vcf.gz
         bcftools view --no-header bcftools_svs.vcf.gz | head -n 20 && echo 0 || echo 1
         ${TIME_COMMAND} truvari collapse --no-consolidate --input bcftools_svs.vcf.gz --output truvari_collapse.vcf --reference ~{reference_fa}
@@ -115,7 +119,7 @@ task MergePAV {
         bcftools view --no-header truvari_collapse_sorted.vcf.gz | head -n 20 && echo 0 || echo 1
         
         # Naive merging of SNPs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed 's@./1@.|1@g;s@1/.@1|.@g' | bgzip > bcftools_snps.vcf.gz
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_snps.vcf.gz
         tabix -f bcftools_snps.vcf.gz
         bcftools view --no-header bcftools_snps.vcf.gz | head -n 20 && echo 0 || echo 1
         
@@ -184,6 +188,10 @@ task PangenieMerge {
     output {
         File pangenome_vcf = work_dir + "/results/pangenome/pangenome.vcf.gz"
         File pangenome_tbi = work_dir + "/results/pangenome/pangenome.vcf.gz.tbi"
+        File log_prepare_vcf = work_dir + "/results/input-vcf/prepare-vcf.log"
+        File log_callset = work_dir + "/results/input-vcf/callset.log"
+        File log_callset_biallelic = work_dir + "/results/input-vcf/callset-biallelic.log"
+        File log_pangenome = work_dir + "/results/pangenome/pangenome.log"
     }
     runtime {
         docker: "fcunial/sv-merging"

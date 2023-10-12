@@ -178,3 +178,7 @@ RUN wget https://github.com/arq5x/bedtools2/releases/download/v${bedtools_versio
 # PANGENIE
 #COPY ./pangenie.sh ${work_dir}/
 RUN git clone https://bitbucket.org/jana_ebler/vcf-merging.git
+RUN pip install pyfaidx
+# Reducing from 20% to 1% the max number of missing alleles per VCF record
+# (records with more missing alleles than this are deleted).
+COPY ./ebler_Snakefile ${work_dir}/vcf-merging/pangenome-graph-from-callset/
