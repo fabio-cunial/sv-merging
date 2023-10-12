@@ -154,7 +154,7 @@ task PangenieMerge {
     parameter_meta {
     }
     
-    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*2 + ceil(size(reference_fa, "GB")) + 50
+    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*20 + ceil(size(reference_fa, "GB")) + 50
     String docker_dir = "/sv-merging"
     String work_dir = "/cromwell_root/sv-merging"
     
@@ -178,7 +178,7 @@ task PangenieMerge {
         echo "reference: ~{reference_fa}" >> config.yaml
         echo "outdir: ~{work_dir}/results" >> config.yaml
         source activate svpop
-        ${TIME_COMMAND} snakemake -j ${N_THREADS} && echo "Snakemake successful" || echo "Snakemake FAILED"
+        ${TIME_COMMAND} snakemake -j ${N_THREADS}
         conda deactivate
         cd ~{work_dir}
         bgzip -@ ${N_THREADS} ./results/pangenome/pangenome.vcf
