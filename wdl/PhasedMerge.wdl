@@ -186,8 +186,8 @@ task PangenieMerge {
     >>>
     
     output {
-        File pangenome_vcf = work_dir + "/results/pangenome/pangenome.vcf.gz"
-        File pangenome_tbi = work_dir + "/results/pangenome/pangenome.vcf.gz.tbi"
+        #File pangenome_vcf = work_dir + "/results/pangenome/pangenome.vcf.gz"
+        #File pangenome_tbi = work_dir + "/results/pangenome/pangenome.vcf.gz.tbi"
         File log_prepare_vcf = work_dir + "/results/input-vcf/prepare-vcf.log"
         File log_callset = work_dir + "/results/input-vcf/callset.log"
         File log_callset_biallelic = work_dir + "/results/input-vcf/callset-biallelic.log"
