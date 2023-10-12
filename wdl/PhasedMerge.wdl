@@ -106,7 +106,7 @@ task MergePAV {
         #
         # Remark: we convert every '.' to a 0, since PanGenie's multiallelic VCF
         # tool discards a haplotype if it contains even a single '.'.
-        REPLACEMENT_COMMAND='s@./1@0|1@g;s@1/.@1|0@g;s@./.@0|0@g;s@.|1@0|1@g;s@1|.@1|0@g;s@.|.@0|0@g'
+        REPLACEMENT_COMMAND='s@\./1@0|1@g; s@1/\.@1|0@g; s@\./\.@0|0@g; s@\.|1@0|1@g; s@1|\.@1|0@g; s@\.|\.@0|0@g'
         
         # Merging SVs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_svs.vcf.gz
@@ -154,7 +154,7 @@ task PangenieMerge {
     parameter_meta {
     }
     
-    Int disk_size_gb = ceil(size(vcf_gz, "GB")) + ceil(size(reference_fa, "GB")) + 50
+    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*2 + ceil(size(reference_fa, "GB")) + 50
     String docker_dir = "/sv-merging"
     String work_dir = "/cromwell_root/sv-merging"
     
@@ -167,7 +167,7 @@ task PangenieMerge {
         GSUTIL_DELAY_S="600"
         N_SOCKETS="$(lscpu | grep '^Socket(s):' | awk '{print $NF}')"
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
-        N_THREADS=$(( 2 * ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
+        N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         TIME_COMMAND="/usr/bin/time --verbose"
 
         gunzip -c ~{vcf_gz} > input.vcf
