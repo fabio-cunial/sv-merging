@@ -181,8 +181,8 @@ task PangenieMerge {
         ${TIME_COMMAND} snakemake -j ${N_THREADS} && echo "Snakemake successful" || echo "Snakemake FAILED"
         conda deactivate
         cd ~{work_dir}
-        bgzip -@ ${N_THREADS} ./results/pangenome/pangenome.vcf
-        tabix -f ./results/pangenome/pangenome.vcf.gz
+        #bgzip -@ ${N_THREADS} ./results/pangenome/pangenome.vcf
+        #tabix -f ./results/pangenome/pangenome.vcf.gz
     >>>
     
     output {
