@@ -178,7 +178,7 @@ task PangenieMerge {
         echo "reference: ~{reference_fa}" >> config.yaml
         echo "outdir: ~{work_dir}/results" >> config.yaml
         source activate svpop
-        ${TIME_COMMAND} snakemake -j ${N_THREADS}
+        ${TIME_COMMAND} snakemake -j ${N_THREADS} && echo "Snakemake successful" || echo "Snakemake FAILED"
         conda deactivate
         cd ~{work_dir}
         bgzip -@ ${N_THREADS} ./results/pangenome/pangenome.vcf
