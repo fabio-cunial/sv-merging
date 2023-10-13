@@ -112,7 +112,7 @@ task MergePAV {
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_svs.vcf.gz
         tabix -f bcftools_svs.vcf.gz
         bcftools view --no-header bcftools_svs.vcf.gz | head -n 20 && echo 0 || echo 1
-        ${TIME_COMMAND} truvari collapse --no-consolidate --input bcftools_svs.vcf.gz --output truvari_collapse.vcf --reference ~{reference_fa}
+        ${TIME_COMMAND} truvari collapse --input bcftools_svs.vcf.gz --output truvari_collapse.vcf --reference ~{reference_fa}
         bcftools sort --output-type z truvari_collapse.vcf > truvari_collapse_sorted.vcf.gz
         tabix -f truvari_collapse_sorted.vcf.gz
         rm -f truvari_collapse.vcf
