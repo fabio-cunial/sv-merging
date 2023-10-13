@@ -106,20 +106,24 @@ task MergePAV {
         #
         # Remark: we convert every '.' to a 0, since PanGenie's multiallelic VCF
         # tool discards a haplotype if it contains even a single '.'.
-        REPLACEMENT_COMMAND='s@\./1@0|1@g;s@1/\.@1|0@g;s@\./\.@0|0@g;s@\.|1@0|1@g;s@1|\.@1|0@g;s@\.|\.@0|0@g'
+        REPLACEMENT_COMMAND_BCFTOOLS='s@\./1@0|1@g;s@1/\.@1|0@g;s@\./\.@0|0@g;s@\.|1@0|1@g;s@1|\.@1|0@g;s@\.|\.@0|0@g'
+        
+        # When $truvari collapse$ merges two calls with GT 0|1 and 0|0, it might
+        # assign the merged call the GT 0/1.
+        REPLACEMENT_COMMAND_TRUVARI='s@0/0@0|0@g;0/1@0|1@g;1/0@1|0@g;1/1@1|1@g'
         
         # Merging SVs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_svs.vcf.gz
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND_BCFTOOLS} | bgzip > bcftools_svs.vcf.gz
         tabix -f bcftools_svs.vcf.gz
         bcftools view --no-header bcftools_svs.vcf.gz |       grep 90258        && echo 0 || echo 1
-        ${TIME_COMMAND} truvari collapse --no-consolidate --input bcftools_svs.vcf.gz --output truvari_collapse.vcf --reference ~{reference_fa}
+        ${TIME_COMMAND} truvari collapse --input bcftools_svs.vcf.gz --reference ~{reference_fa} | sed ${REPLACEMENT_COMMAND_TRUVARI} > truvari_collapse.vcf
         bcftools sort --output-type z truvari_collapse.vcf > truvari_collapse_sorted.vcf.gz
         tabix -f truvari_collapse_sorted.vcf.gz
         rm -f truvari_collapse.vcf
         bcftools view --no-header truvari_collapse_sorted.vcf.gz |      grep 90258      && echo 0 || echo 1
         
         # Naive merging of SNPs
-        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed ${REPLACEMENT_COMMAND} | bgzip > bcftools_snps.vcf.gz
+        ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed ${REPLACEMENT_COMMAND_BCFTOOLS} | bgzip > bcftools_snps.vcf.gz
         tabix -f bcftools_snps.vcf.gz
         bcftools view --no-header bcftools_snps.vcf.gz | head -n 20 && echo 0 || echo 1
         
