@@ -108,9 +108,9 @@ task MergePAV {
         # tool discards a haplotype if it contains even a single '.'.
         REPLACEMENT_COMMAND_BCFTOOLS='s@\./1@0|1@g;s@1/\.@1|0@g;s@\./\.@0|0@g;s@\.|1@0|1@g;s@1|\.@1|0@g;s@\.|\.@0|0@g'
         
-        # When $truvari collapse$ merges two calls with GT 0|1 and 0|0, it might
-        # assign the merged call the GT 0/1.
-        REPLACEMENT_COMMAND_TRUVARI='s@0/0@0|0@g;0/1@0|1@g;1/0@1|0@g;1/1@1|1@g'
+        # Remark: when $truvari collapse$ merges two calls with GT 0|1 and 0|0,
+        # it might assign the merged call the GT 0/1.
+        REPLACEMENT_COMMAND_TRUVARI='s@0/0@0|0@g;s@0/1@0|1@g;s@1/0@1|0@g;s@1/1@1|1@g'
         
         # Merging SVs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND_BCFTOOLS} | bgzip > bcftools_svs.vcf.gz
