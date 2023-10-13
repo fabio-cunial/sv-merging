@@ -115,22 +115,22 @@ task MergePAV {
         # Merging SVs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_svs.txt | sed ${REPLACEMENT_COMMAND_BCFTOOLS} | bgzip > bcftools_svs.vcf.gz
         tabix -f bcftools_svs.vcf.gz
-        bcftools view --no-header bcftools_svs.vcf.gz | head -n 100
+        bcftools view --no-header bcftools_svs.vcf.gz | head -n 100 && echo 0 || echo 1
         ${TIME_COMMAND} truvari collapse --input bcftools_svs.vcf.gz --reference ~{reference_fa} | sed ${REPLACEMENT_COMMAND_TRUVARI} > truvari_collapse.vcf
         bcftools sort --output-type z truvari_collapse.vcf > truvari_collapse_sorted.vcf.gz
         tabix -f truvari_collapse_sorted.vcf.gz
         rm -f truvari_collapse.vcf
-        bcftools view --no-header truvari_collapse_sorted.vcf.gz | head -n 100
+        bcftools view --no-header truvari_collapse_sorted.vcf.gz | head -n 100 && echo 0 || echo 1
         
         # Naive merging of SNPs
         ${TIME_COMMAND} bcftools merge --threads ${N_THREADS} --merge none --file-list list_snps.txt | sed ${REPLACEMENT_COMMAND_BCFTOOLS} | bgzip > bcftools_snps.vcf.gz
         tabix -f bcftools_snps.vcf.gz
-        bcftools view --no-header bcftools_snps.vcf.gz | head -n 100
+        bcftools view --no-header bcftools_snps.vcf.gz | head -n 100 && echo 0 || echo 1
         
         # Combining SVs and SNPs
         ${TIME_COMMAND} bcftools concat --threads ${N_THREADS} --allow-overlaps --output-type z --output final.vcf.gz truvari_collapse_sorted.vcf.gz bcftools_snps.vcf.gz
         tabix -f final.vcf.gz
-        bcftools view --no-header final.vcf.gz | head -n 100
+        bcftools view --no-header final.vcf.gz | head -n 100 && echo 0 || echo 1
     >>>
     
     output {
