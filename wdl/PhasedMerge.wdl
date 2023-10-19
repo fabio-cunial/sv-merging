@@ -141,7 +141,7 @@ task MergePAV {
         docker: "fcunial/sv-merging"
         cpu: 16  # Arbitrary
         memory: "64GB"  # Arbitrary
-        disks: "local-disk 128 HDD"  # Arbitrary
+        disks: "local-disk 1000 HDD"  # Arbitrary
         preemptible: 0
     }
 }
