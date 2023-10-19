@@ -141,7 +141,7 @@ task MergePAV {
         docker: "fcunial/sv-merging"
         cpu: 16  # Arbitrary
         memory: "64GB"  # Arbitrary
-        disks: "local-disk 1000 HDD"  # Arbitrary
+        disks: "local-disk 128 HDD"  # Arbitrary
         preemptible: 0
     }
 }
@@ -158,7 +158,6 @@ task PangenieMerge {
     parameter_meta {
     }
     
-    Int disk_size_gb = ceil(size(vcf_gz, "GB"))*20 + ceil(size(reference_fa, "GB")) + 50
     String docker_dir = "/sv-merging"
     String work_dir = "/cromwell_root/sv-merging"
     
@@ -199,9 +198,9 @@ task PangenieMerge {
     }
     runtime {
         docker: "fcunial/sv-merging"
-        cpu: 8  # Arbitrary
+        cpu: 4  # Arbitrary
         memory: "64GB"  # Arbitrary
-        disks: "local-disk " + disk_size_gb + " HDD"  # Arbitrary
+        disks: "local-disk 1000 HDD"  # Arbitrary
         preemptible: 0
     }
 }
