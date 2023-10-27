@@ -199,8 +199,8 @@ task PangenieMerge {
     runtime {
         docker: "fcunial/sv-merging"
         cpu: 4  # Arbitrary
-        memory: "512GB"  # Arbitrary
-        disks: "local-disk 10000 HDD"  # Arbitrary
+        memory: "900GB"  # Arbitrary
+        disks: "local-disk 20000 HDD"  # Arbitrary
         preemptible: 0
     }
 }
