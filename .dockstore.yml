@@ -40,3 +40,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/PhasedMerge.wdl
   testParameterFiles:
+- name: TruvariIntrasample
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/TruvariIntrasample.wdl
+  testParameterFiles:
