@@ -90,8 +90,8 @@ task TruvariIntrasampleImpl {
         for in_vcf in ~{pav_vcf_gz} ~{pbsv_vcf_gz} ~{sniffles_vcf_gz}
         do
             prename=preprocessed/pre_inv_$(basename $in_vcf)
-            python ~{docker_dir}/resolve.py ${in_vcf} $ref \
-                | bcftools norm --check-ref s --fasta-ref $ref -N -m-any \
+            python ~{docker_dir}/resolve.py ${in_vcf} ~{reference_fa} \
+                | bcftools norm --check-ref s --fasta-ref ~{reference_fa} -N -m-any \
                 | bcftools view -i "SVTYPE != 'BND'" -O z -o ${prename}
             tabix $prename
             outname=preprocessed/$(basename $in_vcf)
