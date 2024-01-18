@@ -1,4 +1,5 @@
-version 1.0
+# Truvari intra-merge for AoU SV
+version 1.1
 
 
 # Workflow for intra-sample merging for AoU.
@@ -80,10 +81,10 @@ task TruvariIntrasampleImpl {
         #   reference)
         #   - symbolic variants are given quality score of 1
         # - Filters out `<CNV>` from pbsv and `<INS>` from sniffles
-        # - Filters out variants greater than 100kbp (I might want to remove
-        #   this)
+        # - Filters out variants greater than 100Mbp
         # - Fills in blank genotypes with `0`
         # - Filters out BND variants
+        # - Turn some deletion/insertion pairs into inversions
         # The quality scores are set based on which variant representations we
         # believe are generally more accurate with higher being better.
         mkdir -p preprocessed
@@ -101,18 +102,18 @@ task TruvariIntrasampleImpl {
         # Step 2 - merge
         # Pastes the samples together in the order of the preferred genotypes.
         # That is to say, this creates a three sample VCF with sample columns
-        # from  pav_sv, pbsv, and sniffles.
+        # from pbsv, sniffles, pav_sv
         bcftools merge --threads ${N_THREADS} --merge none --force-samples -O z \
             -o ~{sample_id}.bcftools_merged.vcf.gz \
-            preprocessed/$(basename ~{pav_vcf_gz}) \
             preprocessed/$(basename ~{pbsv_vcf_gz}) \
-            preprocessed/$(basename ~{sniffles_vcf_gz}) 
+            preprocessed/$(basename ~{sniffles_vcf_gz}) \
+            preprocessed/$(basename ~{pav_vcf_gz}) 
         tabix ~{sample_id}.bcftools_merged.vcf.gz
 
         # Step 3 - collapse
         truvari collapse -i ~{sample_id}.bcftools_merged.vcf.gz -c removed.vcf.gz \
-            --sizemin 0 --sizemax 1000000 -k maxqual --gt --intra --pctseq 0.90 --pctsize 0.90 --refdist 500 \
-            | bcftools sort -O z -o ~{sample_id}.truvari_collapsed.vcf.gz
+            --sizemin 0 --sizemax 1000000 -k maxqual --gt het --intra --pctseq 0.90 --pctsize 0.90 --refdist 500 \
+            | bcftools sort --max-mem 8G -O z -o ~{sample_id}.truvari_collapsed.vcf.gz
         tabix ~{sample_id}.truvari_collapsed.vcf.gz
     >>>
     
