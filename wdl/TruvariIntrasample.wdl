@@ -1,5 +1,5 @@
 # Truvari intra-merge for AoU SV
-version 1.1
+version 1.0
 
 
 # Workflow for intra-sample merging for AoU.
