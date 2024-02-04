@@ -82,16 +82,18 @@ task BenchImpl {
         rm -f reheaded.vcf.gz*
 
         truvari bench -b baseline_fixed.vcf.gz \
-         -c ~{comparison_variants} \
-         --includebed ~{includebed} \
-         --bSample ~{sample_id} \
-         --cSample ~{sample_id} \
-         --pick multi ${extra} \
-         -o bench_results/
+           -c ~{comparison_variants} \
+           --includebed ~{includebed} \
+           --bSample ~{sample_id} \
+           --cSample ~{sample_id} \
+           --pick multi ${extra} \
+           -o ./bench_results/
+        tar czf bench_results.tar.gz ./bench_results/
     >>>
     
     output {
         File bench_summary = work_dir + "/bench_results/summary.json"
+        File bench_results = work_dir + "/bench_results.tar.gz"
     }
     runtime {
         docker: "us.gcr.io/broad-dsp-lrma/aou-lr/truvari_intrasample"
