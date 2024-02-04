@@ -67,7 +67,7 @@ task BenchImpl {
         fi
 
         truvari bench -b ~{baseline_variants} \
-         -c {comparison_variants} \
+         -c ~{comparison_variants} \
          --includebed ~{includebed} \
          --bSample ~{sample_id} \
          --cSample ~{sample_id} \
@@ -76,7 +76,7 @@ task BenchImpl {
     >>>
     
     output {
-        File bench_summary = "~{work_dir}/results/summary.json"
+        File bench_summary = work_dir + "/bench_results/summary.json"
     }
     runtime {
         docker: "us.gcr.io/broad-dsp-lrma/aou-lr/truvari_intrasample"
