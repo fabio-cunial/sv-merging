@@ -66,7 +66,16 @@ task BenchImpl {
            extra="--no-ref a"
         fi
 
-        truvari bench -b ~{baseline_variants} \
+        # Making sure that the baseline VCF has the right sample name (this is
+        # not necessarily true for e.g. dipcall).
+        echo ~{sample_id} > samples.txt
+        bcftools reheader --samples samples.txt ~{baseline_variants} > baseline_fixed.vcf.gz
+        tabix baseline_fixed.vcf.gz
+        
+        # Updating date of TBI files
+        touch comparison_variants_tbi
+
+        truvari bench -b baseline_fixed.vcf.gz \
          -c ~{comparison_variants} \
          --includebed ~{includebed} \
          --bSample ~{sample_id} \
