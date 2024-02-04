@@ -30,6 +30,7 @@ workflow TruvariBenchSample {
     
     output {
         File truvari_bench_summary = BenchImpl.bench_summary
+        File bench_results = BenchImpl.bench_results
     }
 }
 
