@@ -135,7 +135,7 @@ task BenchImpl {
 
             truvari bench -b baseline_fixed.vcf.gz \
                -c $val \
-               --includebed ${truth_bed} \
+               --includebed ~{truth_bed} \
                --pick multi \
                -o ./bench_results/${key}
         done
@@ -154,7 +154,7 @@ task BenchImpl {
         python ~{docker_dir}/merge_report_table.py \
             --truth baseline_fixed.vcf.gz \
             --bcftools ${all_vcfs["bcftools"]} \
-            --regions  ${truth_bed} \
+            --regions  ~{truth_bed} \
             --collapsed ${all_vcfs["truvari"]} \
             --jasmine ${all_vcfs["jasmine"]} \
             --svimmer ${all_vcfs["svimmer"]} \
