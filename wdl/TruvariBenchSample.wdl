@@ -168,7 +168,7 @@ task BenchImpl {
     output {
         File bench_results = work_dir + "/" + sample_id + "_bench_results.tar.gz"
         File region_table = work_dir + "/region.table.tsv"
-        File region_summary = work_dir + "region.summary.txt"
+        File region_summary = work_dir + "/region.summary.txt"
     }
     runtime {
         docker: "us.gcr.io/broad-dsp-lrma/aou-lr/truvari_intrasample"
