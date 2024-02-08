@@ -119,7 +119,7 @@ task BenchImpl {
             val=${all_vcfs[$key]}
             echo "Key: $key, Value: $val"
             outname="resolved_$(basename $val)"
-            python ~{docker_dir}/resolve.py $val $reference \
+            python ~{docker_dir}/resolve.py $val ~{reference} \
                 | bcftools view -i "SVTYPE != 'BND'" \
                 | bcftools sort -O z -o $outname
             tabix -f $outname
