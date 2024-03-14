@@ -50,3 +50,8 @@ workflows:
   publish: True
   primaryDescriptorPath: /wdl/TruvariBenchSample.wdl
   testParameterFiles:
+- name: PBAssembleWithHifiasm
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/PBAssembleWithHifiasm.wdl
+  testParameterFiles:
