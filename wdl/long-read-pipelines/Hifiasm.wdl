@@ -17,20 +17,27 @@ workflow Hifiasm {
         String prefix
 
         String zones = "us-central1-a us-central1-b us-central1-c"
+        Int memory_gb
+        Int num_cpus
     }
 
     call AssembleForAltContigs {
         input:
             reads  = reads,
             prefix = prefix,
-            zones = zones
+            zones = zones,
+            memory_gb = memory_gb,
+            num_cpus = num_cpus
     }
 
     call AssembleForHaplotigs {
         input:
             reads  = reads,
             prefix = prefix,
-            zones = zones
+            zones = zones,
+            memory_gb = memory_gb,
+            num_cpus = num_cpus
+            
     }
 
     output {
@@ -59,8 +66,8 @@ task AssembleForHaplotigs {
         File reads
         String prefix = "out"
         String zones
-        Int? memory
-        Int? num_cpus
+        Int memory_gb
+        Int num_cpus
 
         RuntimeAttr? runtime_attr_override
     }
@@ -110,7 +117,7 @@ task AssembleForHaplotigs {
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
-        mem_gb:             memory,
+        mem_gb:             memory_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
         preemptible_tries:  0,
@@ -135,14 +142,11 @@ task AssembleForAltContigs {
         File reads
         String prefix = "out"
         String zones
+        Int memory_gb
+        Int num_cpus
 
         RuntimeAttr? runtime_attr_override
     }
-    Int proposed_memory = 4 * ceil(size(reads, "GB"))
-    Int memory = if proposed_memory < 96 then 96 else if proposed_memory > 512 then 512 else proposed_memory # this 96 magic number is purely empirical
-    Int n = memory / 4  # this might be an odd number
-    Int num_cpus_proposal = if (n/2)*2 == n then n else n+1  # a hack because WDL doesn't have modulus operator
-    Int num_cpus = if num_cpus_proposal > 96 then 96 else num_cpus_proposal
 
     Int disk_size = 10 * ceil(size(reads, "GB"))
 
@@ -183,7 +187,7 @@ task AssembleForAltContigs {
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
-        mem_gb:             memory,
+        mem_gb:             memory_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
         preemptible_tries:  0,
