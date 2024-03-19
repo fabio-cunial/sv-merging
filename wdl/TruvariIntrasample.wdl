@@ -104,11 +104,17 @@ task TruvariIntrasampleImpl {
         # That is to say, this creates a three sample VCF with sample columns
         # from pbsv, sniffles, pav_sv
         bcftools merge --threads ${N_THREADS} --merge none --force-samples -O z \
-            -o ~{sample_id}.bcftools_merged.vcf.gz \
+            -o tmp.vcf.gz \
             preprocessed/$(basename ~{pbsv_vcf_gz}) \
             preprocessed/$(basename ~{sniffles_vcf_gz}) \
             preprocessed/$(basename ~{pav_vcf_gz}) 
+        tabix tmp.vcf.gz
+        
+        # Removing multiallelic records, since we observed that the $bcftools
+        # merge$ command above creates multiallelic records sometimes.
+        bcftools norm --multiallelics - --output-type z tmp.vcf.gz > ~{sample_id}.bcftools_merged.vcf.gz
         tabix ~{sample_id}.bcftools_merged.vcf.gz
+        rm -f tmp.vcf.gz*
 
         # Step 3 - collapse
         truvari collapse -i ~{sample_id}.bcftools_merged.vcf.gz -c removed.vcf.gz \
