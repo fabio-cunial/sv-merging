@@ -114,9 +114,9 @@ task TruvariIntrasampleImpl {
         # from pbsv, sniffles, pav_sv
         bcftools merge --threads ${N_THREADS} --merge none --force-samples -O z \
             -o ~{sample_id}.bcftools_merged.vcf.gz \
-            preprocessed/$(basename pbsv_new.vcf.gz}) \
-            preprocessed/$(basename sniffles_new.vcf.gz}) \
-            preprocessed/$(basename pav_new.vcf.gz}) 
+            preprocessed/$(basename pbsv_new.vcf.gz) \
+            preprocessed/$(basename sniffles_new.vcf.gz) \
+            preprocessed/$(basename pav_new.vcf.gz) 
         tabix ~{sample_id}.bcftools_merged.vcf.gz
 
         # Step 3 - collapse
