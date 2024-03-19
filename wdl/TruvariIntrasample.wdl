@@ -72,7 +72,7 @@ task TruvariIntrasampleImpl {
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         
-        # Removing multiallelic records
+        # Removing multiallelic records from the input
         bcftools norm --multiallelics - --output-type z ~{pbsv_vcf_gz} > pbsv_new.vcf.gz
         tabix pbsv_new.vcf.gz
         bcftools norm --multiallelics - --output-type z ~{sniffles_vcf_gz} > sniffles_new.vcf.gz
@@ -113,11 +113,17 @@ task TruvariIntrasampleImpl {
         # That is to say, this creates a three sample VCF with sample columns
         # from pbsv, sniffles, pav_sv
         bcftools merge --threads ${N_THREADS} --merge none --force-samples -O z \
-            -o ~{sample_id}.bcftools_merged.vcf.gz \
-            preprocessed/$(basename pbsv_new.vcf.gz) \
-            preprocessed/$(basename sniffles_new.vcf.gz) \
-            preprocessed/$(basename pav_new.vcf.gz) 
+            -o tmp.vcf.gz \
+            preprocessed/pbsv_new.vcf.gz \
+            preprocessed/sniffles_new.vcf.gz \
+            preprocessed/pav_new.vcf.gz 
+        tabix tmp.vcf.gz
+        
+        # Removing multiallelic records (we observed that they are created in
+        # Step 2 sometimes).
+        bcftools norm --multiallelics - --output-type z tmp.vcf.gz > ~{sample_id}.bcftools_merged.vcf.gz
         tabix ~{sample_id}.bcftools_merged.vcf.gz
+        rm -f tmp.vcf.gz*
 
         # Step 3 - collapse
         truvari collapse -i ~{sample_id}.bcftools_merged.vcf.gz -c removed.vcf.gz \
