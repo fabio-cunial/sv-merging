@@ -72,6 +72,15 @@ task TruvariIntrasampleImpl {
         N_CORES_PER_SOCKET="$(lscpu | grep '^Core(s) per socket:' | awk '{print $NF}')"
         N_THREADS=$(( ${N_SOCKETS} * ${N_CORES_PER_SOCKET} ))
         
+        # Removing multiallelic records
+        bcftools norm --multiallelics - --output-type z ~{pbsv_vcf_gz} > pbsv_new.vcf.gz
+        tabix pbsv_new.vcf.gz
+        bcftools norm --multiallelics - --output-type z ~{sniffles_vcf_gz} > sniffles_new.vcf.gz
+        tabix sniffles_new.vcf.gz
+        bcftools norm --multiallelics - --output-type z ~{pav_vcf_gz} > pav_new.vcf.gz
+        tabix pav_new.vcf.gz
+        rm -f tmp.vcf.gz*
+        
         # Step 1 - clean up the VCFs
         # - Assigns quality scores to each SV caller's result
         #  - pav 4
@@ -88,7 +97,7 @@ task TruvariIntrasampleImpl {
         # The quality scores are set based on which variant representations we
         # believe are generally more accurate with higher being better.
         mkdir -p preprocessed
-        for in_vcf in ~{pav_vcf_gz} ~{pbsv_vcf_gz} ~{sniffles_vcf_gz}
+        for in_vcf in pav_new.vcf.gz pbsv_new.vcf.gz sniffles_new.vcf.gz
         do
             prename=preprocessed/pre_inv_$(basename $in_vcf)
             python ~{docker_dir}/resolve.py ${in_vcf} ~{reference_fa} \
@@ -104,17 +113,11 @@ task TruvariIntrasampleImpl {
         # That is to say, this creates a three sample VCF with sample columns
         # from pbsv, sniffles, pav_sv
         bcftools merge --threads ${N_THREADS} --merge none --force-samples -O z \
-            -o tmp.vcf.gz \
-            preprocessed/$(basename ~{pbsv_vcf_gz}) \
-            preprocessed/$(basename ~{sniffles_vcf_gz}) \
-            preprocessed/$(basename ~{pav_vcf_gz}) 
-        tabix tmp.vcf.gz
-        
-        # Removing multiallelic records, since we observed that the $bcftools
-        # merge$ command above creates multiallelic records sometimes.
-        bcftools norm --multiallelics - --output-type z tmp.vcf.gz > ~{sample_id}.bcftools_merged.vcf.gz
+            -o ~{sample_id}.bcftools_merged.vcf.gz \
+            preprocessed/$(basename pbsv_new.vcf.gz}) \
+            preprocessed/$(basename sniffles_new.vcf.gz}) \
+            preprocessed/$(basename pav_new.vcf.gz}) 
         tabix ~{sample_id}.bcftools_merged.vcf.gz
-        rm -f tmp.vcf.gz*
 
         # Step 3 - collapse
         truvari collapse -i ~{sample_id}.bcftools_merged.vcf.gz -c removed.vcf.gz \
