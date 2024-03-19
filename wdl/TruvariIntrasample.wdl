@@ -105,7 +105,7 @@ task TruvariIntrasampleImpl {
                 | bcftools view -i "SVTYPE != 'BND'" -O z -o ${prename}
             tabix $prename
             outname=preprocessed/$(basename $in_vcf)
-            python ~{docker_dir}/inversion_guesser.py -i $prename -o $outname
+            ${TIME_COMMAND} python ~{docker_dir}/inversion_guesser.py -i $prename -o $outname
         done
 
         # Step 2 - merge
